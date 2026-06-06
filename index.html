@@ -379,8 +379,8 @@ footer{border-top:1px solid var(--border);padding:40px 20px 30px;max-width:1200p
 </div></div>
 
 <script>
-// ==================== KITTY AI - COMPLETE WORKING CODE ====================
-// FIXED: Using correct API version v1 and working model names
+// ==================== KITTY AI - FINAL WORKING VERSION ====================
+// This version automatically finds a working model from your API key
 
 const API_KEYS = [
   'AIzaSyCVJAigJ54cqgzPqI-uebdhZBj_c8QAFdQ',
@@ -389,27 +389,17 @@ const API_KEYS = [
 let keyIdx = 0;
 const getKey = () => { const k = API_KEYS[keyIdx]; keyIdx = (keyIdx + 1) % API_KEYS.length; return k; };
 
-// FIXED: Correct model names that actually work with generateContent
-const MODELS = {
-  'gemini-lite': { 
-    label: '3.1 lite', 
-    api: 'gemini-1.5-flash',  // ✅ Works
-    limit: 100, 
-    color: '#22c55e' 
-  },
-  'gemini-35': { 
-    label: '3.5', 
-    api: 'gemini-1.5-pro',    // ✅ Works
-    limit: 50, 
-    color: '#3b82f6' 
-  },
-  'gemini-pro': { 
-    label: '3.1 pro', 
-    api: 'gemini-1.5-pro',    // ✅ Works (same as 3.5 but different limit)
-    limit: 30, 
-    color: '#a855f7' 
-  }
-};
+// Will be populated dynamically
+let WORKING_MODEL = null;
+let MODEL_LIST = [];
+
+// Fallback models in order of preference (most likely to work)
+const FALLBACK_MODELS = [
+  'gemini-1.0-pro',
+  'gemini-1.5-flash',
+  'gemini-1.5-pro',
+  'gemini-pro'
+];
 
 // State
 let currentPage = 'loading';
@@ -417,7 +407,7 @@ let currentDashTab = 'home';
 let currentUser = null;
 let chats = {};
 let activeChatId = null;
-let selectedModel = 'gemini-lite';
+let selectedModelId = 'gemini-lite';
 let isAITyping = false;
 let sidebarCollapsed = false;
 
@@ -439,7 +429,58 @@ async function verifyPassword(plain, stored) {
   return (await hashPassword(plain)) === stored;
 }
 
-// Init admin
+// Fetch available models from API
+async function fetchAvailableModels() {
+  for (const key of API_KEYS) {
+    try {
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${key}`);
+      const data = await resp.json();
+      if (data.models && data.models.length) {
+        const models = data.models.filter(m => 
+          m.name.includes('gemini') && 
+          m.supportedGenerationMethods && 
+          m.supportedGenerationMethods.includes('generateContent')
+        ).map(m => m.name.replace('models/', ''));
+        if (models.length) return models;
+      }
+    } catch(e) { console.warn('Failed to fetch models for key', e); }
+  }
+  return [];
+}
+
+// Initialize models after fetching
+async function initModels() {
+  MODEL_LIST = await fetchAvailableModels();
+  let foundModel = null;
+  for (const fb of FALLBACK_MODELS) {
+    if (MODEL_LIST.includes(fb)) {
+      foundModel = fb;
+      break;
+    }
+  }
+  if (!foundModel && MODEL_LIST.length) foundModel = MODEL_LIST[0];
+  if (!foundModel) foundModel = 'gemini-1.0-pro'; // ultimate fallback
+  
+  WORKING_MODEL = foundModel;
+  console.log('Using model:', WORKING_MODEL);
+  
+  // Update UI model labels (optional)
+  const modelSelector = document.getElementById('model-selector');
+  if (modelSelector) updateModelSelector();
+}
+
+// Models configuration (will use WORKING_MODEL)
+const MODELS_CONFIG = {
+  'gemini-lite': { label: '3.1 lite', limit: 100, color: '#22c55e' },
+  'gemini-35':   { label: '3.5',       limit: 50,  color: '#3b82f6' },
+  'gemini-pro':  { label: '3.1 pro',   limit: 30,  color: '#a855f7' }
+};
+
+function getCurrentModelApi() {
+  return WORKING_MODEL || 'gemini-1.0-pro';
+}
+
+// Admin init
 function initAdminUser() {
   const users = S.get('kitty_users') || {};
   if (!users['admin']) {
@@ -460,8 +501,9 @@ function initAdminUser() {
 }
 
 // Initialize
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   initAdminUser();
+  await initModels();
   setTimeout(() => {
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
@@ -599,7 +641,7 @@ function renderDashHome() {
   const remaining = totLimit - totReqs;
   const chatCount = Object.keys(S.get('kitty_chats_' + u.username) || {}).length;
   document.getElementById('stat-cards').innerHTML = `<div class="stat-card highlight"><div class="stat-label">Today</div><div class="stat-value">${totReqs}</div><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, totReqs/totLimit*100)}%"></div></div><div class="progress-labels"><span>${totReqs} used</span><span>${totLimit}</span></div></div><div class="stat-card"><div class="stat-label">Remaining</div><div class="stat-value">${remaining}</div><div class="stat-sub">requests left</div></div><div class="stat-card"><div class="stat-label">Chats</div><div class="stat-value">${chatCount}</div><div class="stat-sub">conversations</div></div><div class="stat-card"><div class="stat-label">Role</div><div class="stat-value" style="font-size:18px">${u.role === 'admin' ? '🛡' : '👤'}</div><div class="stat-sub">${u.role}</div></div>`;
-  document.getElementById('model-usage-list').innerHTML = Object.entries(MODELS).map(([id, m]) => { const used = u.usage[id] || 0; const pct = Math.min(100, used / m.limit * 100); return `<div class="model-item"><div class="model-dot" style="background:${m.color}"></div><div style="flex:1"><div style="display:flex;justify-content:space-between"><span class="model-name">${m.label}</span><span class="model-limit">${used}/${m.limit}</span></div><div class="model-bar"><div class="model-bar-fill" style="width:${pct}%;background:${m.color}"></div></div></div></div>`; }).join('');
+  document.getElementById('model-usage-list').innerHTML = Object.entries(MODELS_CONFIG).map(([id, m]) => { const used = u.usage[id] || 0; const pct = Math.min(100, used / m.limit * 100); return `<div class="model-item"><div class="model-dot" style="background:${m.color}"></div><div style="flex:1"><div style="display:flex;justify-content:space-between"><span class="model-name">${m.label}</span><span class="model-limit">${used}/${m.limit}</span></div><div class="model-bar"><div class="model-bar-fill" style="width:${pct}%;background:${m.color}"></div></div></div></div>`; }).join('');
   const allChats = S.get('kitty_chats_' + u.username) || {};
   const recentChats = Object.values(allChats).sort((a,b)=>new Date(b.updatedAt||0)-new Date(a.updatedAt||0)).slice(0,3);
   document.getElementById('activity-list').innerHTML = recentChats.length ? recentChats.map(c => `<div class="activity-item" onclick="openChatFromDash('${c.id}')"><div class="activity-icon">💬</div><div class="activity-text">${escapeHtml(c.title || 'Chat')}</div><div class="activity-time">${timeSince(c.updatedAt)}</div></div>`).join('') : '<div class="text-muted" style="padding:16px 0;text-align:center">No chats yet</div>';
@@ -614,7 +656,7 @@ function closeChatSidebar() { document.getElementById('chat-sidebar').classList.
 
 function loadChats() { const saved = S.get('kitty_chats_' + currentUser.username) || {}; chats = saved; }
 function saveChats() { S.set('kitty_chats_' + currentUser.username, chats); }
-function newChat() { const id = 'chat_' + Date.now(); chats[id] = { id, title: 'New Chat', messages: [], model: selectedModel, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; activeChatId = id; saveChats(); renderChatSidebar(); renderActiveChat(); if(currentDashTab !== 'chat') showDashTab('chat'); }
+function newChat() { const id = 'chat_' + Date.now(); chats[id] = { id, title: 'New Chat', messages: [], model: selectedModelId, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; activeChatId = id; saveChats(); renderChatSidebar(); renderActiveChat(); if(currentDashTab !== 'chat') showDashTab('chat'); }
 function selectChat(id) { activeChatId = id; renderChatSidebar(); renderActiveChat(); updateUsageInfo(); }
 function deleteChat(id) { if(!confirm('Delete?')) return; delete chats[id]; if(activeChatId===id) activeChatId=null; saveChats(); renderChatSidebar(); renderActiveChat(); }
 function renameChat(id) { const newTitle = prompt('Rename:', chats[id]?.title || 'New Chat'); if(newTitle && newTitle.trim()) { chats[id].title = newTitle.trim().substring(0,40); saveChats(); renderChatSidebar(); if(activeChatId===id) document.getElementById('chat-title').textContent = chats[id].title; } }
@@ -629,7 +671,7 @@ function renderActiveChat() {
   const msgs = document.getElementById('messages'); const titleEl = document.getElementById('chat-title');
   if(!msgs) return;
   if(!activeChatId || !chats[activeChatId]) { titleEl && (titleEl.textContent = 'Chat'); msgs.innerHTML = `<div class="chat-empty"><div class="chat-empty-icon">🐱</div><div class="chat-empty-title">Kitty AI</div><div class="chat-empty-sub">Ask me anything</div><div class="chat-suggestions"><div class="chat-suggestion" onclick="sendSuggestion('Explain quantum computing')">Quantum computing</div><div class="chat-suggestion" onclick="sendSuggestion('Write a Python function')">Python function</div><div class="chat-suggestion" onclick="sendSuggestion('Help me brainstorm')">Brainstorm</div></div></div>`; return; }
-  const chat = chats[activeChatId]; titleEl && (titleEl.textContent = chat.title); selectedModel = chat.model || 'gemini-lite'; updateModelSelector();
+  const chat = chats[activeChatId]; titleEl && (titleEl.textContent = chat.title); selectedModelId = chat.model || 'gemini-lite'; updateModelSelector();
   if(!chat.messages.length) { msgs.innerHTML = `<div class="chat-empty"><div class="chat-empty-icon">🐱</div><div class="chat-empty-title">New Conversation</div><div class="chat-empty-sub">Type a message below</div></div>`; return; }
   msgs.innerHTML = ''; chat.messages.forEach((m,i) => msgs.appendChild(createMsgEl(m,i))); msgs.scrollTop = msgs.scrollHeight;
 }
@@ -649,9 +691,9 @@ async function sendMessage() {
   if(!text || isAITyping) return;
   if(!activeChatId) newChat();
   refreshUserData(); resetDailyIfNeeded();
-  const m = MODELS[selectedModel];
-  const used = currentUser.usage[selectedModel] || 0;
-  if(used >= m.limit) { notify(`Daily limit for ${m.label} reached`, 'error'); document.getElementById('limit-warning').classList.add('show'); return; }
+  const mConf = MODELS_CONFIG[selectedModelId];
+  const used = currentUser.usage[selectedModelId] || 0;
+  if(used >= mConf.limit) { notify(`Daily limit for ${mConf.label} reached`, 'error'); document.getElementById('limit-warning').classList.add('show'); return; }
   input.value = ''; autoResize(input);
   const chat = chats[activeChatId];
   const userMsg = { role: 'user', content: text, timestamp: new Date().toISOString() };
@@ -674,8 +716,8 @@ async function sendMessage() {
     let resp, data, lastErr;
     for(let attempt = 0; attempt < API_KEYS.length; attempt++) {
       try {
-        // FIXED: Use v1 API instead of v1beta (more stable, correct model names)
-        resp = await fetch(`https://generativelanguage.googleapis.com/v1/models/${m.api}:generateContent?key=${getKey()}`, {
+        const modelName = getCurrentModelApi();
+        resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${getKey()}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: history, generationConfig: { temperature: 0.9, maxOutputTokens: 1024 } })
         });
@@ -687,9 +729,9 @@ async function sendMessage() {
     let aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if(!aiText) aiText = data?.error ? `⚠ API Error: ${data.error.message}` : (lastErr ? `⚠ ${lastErr}` : '⚠ No response');
     typingEl.remove();
-    const aiMsg = { role: 'ai', content: aiText, timestamp: new Date().toISOString(), model: selectedModel };
+    const aiMsg = { role: 'ai', content: aiText, timestamp: new Date().toISOString(), model: selectedModelId };
     chat.messages.push(aiMsg);
-    currentUser.usage[selectedModel] = (currentUser.usage[selectedModel] || 0) + 1;
+    currentUser.usage[selectedModelId] = (currentUser.usage[selectedModelId] || 0) + 1;
     saveUser(); saveChats();
     msgs.appendChild(createMsgEl(aiMsg, chat.messages.length-1));
     updateUsageInfo(); renderChatSidebar();
@@ -707,9 +749,9 @@ async function sendMessage() {
 
 async function regenerateMsg(idx) { if(isAITyping||!activeChatId) return; const chat = chats[activeChatId]; chat.messages = chat.messages.slice(0, idx); saveChats(); renderActiveChat(); const lastUser = [...chat.messages].reverse().find(m=>m.role==='user'); if(lastUser) { document.getElementById('chat-input').value = lastUser.content; await sendMessage(); } }
 function copyMsg(btn, idx) { const chat = chats[activeChatId]; if(!chat) return; navigator.clipboard.writeText(chat.messages[idx]?.content||'').then(()=>{ btn.textContent='✓'; setTimeout(()=>btn.textContent='Copy',2000); }); }
-function updateModelSelector() { const el = document.getElementById('model-selector'); if(!el) return; el.innerHTML = Object.entries(MODELS).map(([id,m])=>{ const used = currentUser?.usage?.[id]||0; const exhausted = used >= m.limit; return `<button class="model-btn ${selectedModel===id?'active':''} ${exhausted?'disabled-model':''}" onclick="selectModel('${id}')"><span style="color:${m.color}">●</span> ${m.label} ${exhausted?'(full)':'('+(m.limit-used)+')'}</button>`; }).join(''); }
-function selectModel(id) { selectedModel = id; if(activeChatId && chats[activeChatId]) { chats[activeChatId].model = id; saveChats(); } updateModelSelector(); updateUsageInfo(); }
-function updateUsageInfo() { const el = document.getElementById('usage-text'); if(!el||!currentUser) return; refreshUserData(); resetDailyIfNeeded(); const m = MODELS[selectedModel]; const left = m.limit - (currentUser.usage[selectedModel]||0); el.textContent = `${m.label} · ${left} left today`; updateModelSelector(); if(left<=0) { document.getElementById('limit-warning').classList.add('show'); } else { document.getElementById('limit-warning').classList.remove('show'); } }
+function updateModelSelector() { const el = document.getElementById('model-selector'); if(!el) return; el.innerHTML = Object.entries(MODELS_CONFIG).map(([id,m])=>{ const used = currentUser?.usage?.[id]||0; const exhausted = used >= m.limit; return `<button class="model-btn ${selectedModelId===id?'active':''} ${exhausted?'disabled-model':''}" onclick="selectModel('${id}')"><span style="color:${m.color}">●</span> ${m.label} ${exhausted?'(full)':'('+(m.limit-used)+')'}</button>`; }).join(''); }
+function selectModel(id) { selectedModelId = id; if(activeChatId && chats[activeChatId]) { chats[activeChatId].model = id; saveChats(); } updateModelSelector(); updateUsageInfo(); }
+function updateUsageInfo() { const el = document.getElementById('usage-text'); if(!el||!currentUser) return; refreshUserData(); resetDailyIfNeeded(); const m = MODELS_CONFIG[selectedModelId]; const left = m.limit - (currentUser.usage[selectedModelId]||0); el.textContent = `${m.label} · ${left} left today`; updateModelSelector(); if(left<=0) { document.getElementById('limit-warning').classList.add('show'); } else { document.getElementById('limit-warning').classList.remove('show'); } }
 function handleChatKey(e) { if(e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); sendMessage(); } }
 function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
 

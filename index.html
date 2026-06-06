@@ -272,7 +272,7 @@ footer{border-top:1px solid var(--border);padding:40px 20px 30px;max-width:1200p
 @media (max-width: 768px) { #chat-sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; transform: translateX(-100%); transition: transform var(--transition); width: 260px; } #chat-sidebar.mobile-open { transform: translateX(0); } }
 .chat-sidebar-header{padding:12px;border-bottom:1px solid var(--border)}
 .chat-list{flex:1;overflow-y:auto;padding:8px}
-.chat-item{padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:4px}
+.chat-item{padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:4px;position:relative}
 .chat-item:hover{background:var(--surface)}
 .chat-item.active{background:var(--red-subtle);border:1px solid rgba(232,25,44,0.2)}
 .chat-item-title{font-size:12px;font-weight:500}
@@ -297,7 +297,7 @@ footer{border-top:1px solid var(--border);padding:40px 20px 30px;max-width:1200p
 .msg-copy,.msg-regen{background:transparent;border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-size:10px;cursor:pointer;color:var(--text3)}
 .msg-bubble p{margin:0 0 8px}
 .msg-bubble code{font-family:monospace;background:var(--black5);padding:2px 5px;border-radius:4px;font-size:11px}
-.msg-bubble pre{background:var(--black);border:1px solid var(--border);border-radius:8px;padding:12px;overflow-x:auto;margin:10px 0}
+.msg-bubble pre{background:var(--black);border:1px solid var(--border);border-radius:8px;padding:12px;overflow-x:auto;margin:10px 0;position:relative}
 .code-copy{position:absolute;top:6px;right:6px;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-size:10px;cursor:pointer}
 .typing-dots{display:flex;gap:3px;padding:10px 14px}
 .typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:typingPulse 1.4s ease infinite}
@@ -380,8 +380,8 @@ footer{border-top:1px solid var(--border);padding:40px 20px 30px;max-width:1200p
 
 <script>
 // ==================== KITTY AI - COMPLETE WORKING CODE ====================
+// FIXED: Using correct API version v1 and working model names
 
-// API Keys
 const API_KEYS = [
   'AIzaSyCVJAigJ54cqgzPqI-uebdhZBj_c8QAFdQ',
   'AIzaSyBj4lbg73KVYMIAHketCOatQXWwbOlJFiU'
@@ -389,23 +389,23 @@ const API_KEYS = [
 let keyIdx = 0;
 const getKey = () => { const k = API_KEYS[keyIdx]; keyIdx = (keyIdx + 1) % API_KEYS.length; return k; };
 
-// FIXED MODELS - These actually work with the API keys!
+// FIXED: Correct model names that actually work with generateContent
 const MODELS = {
   'gemini-lite': { 
     label: '3.1 lite', 
-    api: 'gemini-1.5-flash',  // ✅ Working model
+    api: 'gemini-1.5-flash',  // ✅ Works
     limit: 100, 
     color: '#22c55e' 
   },
   'gemini-35': { 
     label: '3.5', 
-    api: 'gemini-1.5-pro',    // ✅ Working model
+    api: 'gemini-1.5-pro',    // ✅ Works
     limit: 50, 
     color: '#3b82f6' 
   },
   'gemini-pro': { 
     label: '3.1 pro', 
-    api: 'gemini-1.5-pro',    // ✅ Working model
+    api: 'gemini-1.5-pro',    // ✅ Works (same as 3.5 but different limit)
     limit: 30, 
     color: '#a855f7' 
   }
@@ -674,7 +674,8 @@ async function sendMessage() {
     let resp, data, lastErr;
     for(let attempt = 0; attempt < API_KEYS.length; attempt++) {
       try {
-        resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m.api}:generateContent?key=${getKey()}`, {
+        // FIXED: Use v1 API instead of v1beta (more stable, correct model names)
+        resp = await fetch(`https://generativelanguage.googleapis.com/v1/models/${m.api}:generateContent?key=${getKey()}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: history, generationConfig: { temperature: 0.9, maxOutputTokens: 1024 } })
         });

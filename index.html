@@ -871,35 +871,30 @@ footer{border-top:1px solid var(--border);padding:60px 40px 40px;max-width:1200p
 // ══════════════════════════════════════════════════════════
 
 // ── API CONFIG ──
-// ⚠ SECURITY NOTICE: API keys in client-side code are visible to anyone who
-// opens DevTools. For production, proxy all AI requests through a backend
-// endpoint that injects the key server-side, and remove these entirely.
-// These keys are intentionally split to make accidental scraping harder,
-// but they are NOT cryptographically protected in a browser context.
-const _k = [
-  ['AIzaSyCVJAig', 'J54cqgzPqI-uebdhZBj_c8QAFdQ'],  // key 1 (Gemini)
-  ['AIzaSyBj4lbg', '73KVYMIAHketCOatQXWwbOlJFiU'],  // key 2 (Gemini)
+// ⚠ PRODUCTION NOTE: Move these to a backend proxy before public deployment.
+const API_KEYS = [
+  'AIzaSyCVJAigJ54cqgzPqI-uebdhZBj_c8QAFdQ',
+  'AIzaSyBj4lbg73KVYMIAHketCOatQXWwbOlJFiU'
 ];
-const API_KEYS = _k.map(p => p.join(''));
 let keyIdx = 0;
 const getKey = () => { const k = API_KEYS[keyIdx]; keyIdx = (keyIdx + 1) % API_KEYS.length; return k; };
 
 const MODELS = {
   'gemini-lite': {
     label: 'Gemini 3.1 Lite',
-    api: 'gemini-2.0-flash',          // fastest, high-quota
+    api: 'gemini-2.0-flash-lite',
     limit: 100,
     color: '#22c55e'
   },
   'gemini-35': {
     label: 'Gemini 3.5',
-    api: 'gemini-1.5-flash',          // Fix 4: distinct mid-tier model
+    api: 'gemini-2.5-flash-preview-05-20',
     limit: 50,
     color: '#3b82f6'
   },
   'gemini-pro': {
     label: 'Gemini 3.1 Pro',
-    api: 'gemini-1.5-pro',            // most capable
+    api: 'gemini-2.5-pro-preview-06-05',
     limit: 30,
     color: '#a855f7'
   }

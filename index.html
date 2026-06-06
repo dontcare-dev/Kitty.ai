@@ -879,22 +879,23 @@ const API_KEYS = [
 let keyIdx = 0;
 const getKey = () => { const k = API_KEYS[keyIdx]; keyIdx = (keyIdx + 1) % API_KEYS.length; return k; };
 
+// MODELS - Updated with exact names you requested
 const MODELS = {
   'gemini-lite': {
-    label: 'Gemini 3.1 Lite',
+    label: '3.1 lite',
     api: 'gemini-2.0-flash-lite',
     limit: 100,
     color: '#22c55e'
   },
   'gemini-35': {
-    label: 'Gemini 3.5',
-    api: 'gemini-2.5-flash-preview-05-20',
+    label: '3.5',
+    api: 'gemini-2.0-flash',
     limit: 50,
     color: '#3b82f6'
   },
   'gemini-pro': {
-    label: 'Gemini 3.1 Pro',
-    api: 'gemini-2.5-pro-preview-06-05',
+    label: '3.1 pro',
+    api: 'gemini-1.5-pro',
     limit: 30,
     color: '#a855f7'
   }
@@ -1665,217 +1666,12 @@ function renderAdmin() {
       : 0;
     return `<tr>
       <td><div style="font-weight:600">${sanitize(u.name||u.username)}</div><div style="font-size:11px;color:var(--text3)">@${sanitize(u.username)}</div></td>
-      <td>${sanitize(u.email)}</td>
+      <td>${sanitize(u.email)}</div></td>
       <td><span class="user-badge ${u.role}">${u.role}</span></td>
       <td><span style="font-family:var(--font-mono)">${reqToday}</span></td>
-      <td>${formatDate(u.createdAt)}</td>
-      <td><span class="status-dot ${u.banned?'offline':'online'}"></span>${u.banned?'Banned':'Active'}</td>
+      <td>${formatDate(u.createdAt)}</div></td>
+      <td><span class="status-dot ${u.banned?'offline':'online'}"></span>${u.banned?'Banned':'Active'}</div></td>
       <td><div class="admin-actions">
         ${u.username !== 'admin' ? `<button class="btn btn-sm ${u.banned?'btn-ghost':'btn-danger'}" onclick="toggleBan('${u.username}')">${u.banned?'Unban':'Ban'}</button>` : '<span style="color:var(--text3);font-size:12px">—</span>'}
         ${u.username !== currentUser.username && u.username !== 'admin' ? `<button class="btn btn-sm btn-danger" onclick="adminDeleteUser('${u.username}')">Delete</button>` : ''}
-      </div></td>
-    </tr>`;
-  }).join('');
-}
-
-function toggleBan(username) {
-  const users = S.get('kitty_users') || {};
-  if (!users[username]) return;
-  users[username].banned = !users[username].banned;
-  S.set('kitty_users', users);
-  notify(`User ${username} ${users[username].banned ? 'banned' : 'unbanned'}.`, users[username].banned ? 'error' : 'success');
-  renderAdmin();
-}
-
-function adminDeleteUser(username) {
-  if (!confirm(`Delete user @${username} permanently?`)) return;
-  const users = S.get('kitty_users') || {};
-  delete users[username];
-  S.set('kitty_users', users);
-  S.del('kitty_chats_' + username);
-  notify(`User @${username} deleted.`, 'info');
-  renderAdmin();
-}
-
-// ── COMMAND PALETTE ──
-const COMMANDS = [
-  { icon: '⊞', label: 'Dashboard', desc: 'Go to dashboard home', action: () => showDashTab('home'), kbd: '' },
-  { icon: '💬', label: 'New Chat', desc: 'Start a new conversation', action: () => { showDashTab('chat'); newChat(); }, kbd: 'N' },
-  { icon: '⚙', label: 'Settings', desc: 'Account settings', action: () => showDashTab('settings'), kbd: '' },
-  { icon: '⎋', label: 'Sign Out', desc: 'Log out of your account', action: () => doLogout(), kbd: '' },
-  { icon: '🏠', label: 'Home', desc: 'Go to landing page', action: () => showPage('landing'), kbd: '' },
-  { icon: '📤', label: 'Export Chats', desc: 'Export conversation history', action: () => exportConversations(), kbd: '' },
-];
-
-function initCmdPalette() {
-  const overlay = document.getElementById('cmd-overlay');
-  const input = document.getElementById('cmd-input');
-
-  document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); toggleCmd(); }
-    if (e.key === 'Escape') closeCmd();
-  });
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeCmd(); });
-  input.addEventListener('input', renderCmdResults);
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { const sel = document.querySelector('.cmd-item.selected'); if (sel) sel.click(); }
-    if (e.key === 'ArrowDown') { e.preventDefault(); moveCmdSel(1); }
-    if (e.key === 'ArrowUp') { e.preventDefault(); moveCmdSel(-1); }
-  });
-  renderCmdResults();
-}
-
-function toggleCmd() {
-  const o = document.getElementById('cmd-overlay');
-  o.classList.toggle('open');
-  if (o.classList.contains('open')) { document.getElementById('cmd-input').value = ''; renderCmdResults(); document.getElementById('cmd-input').focus(); }
-}
-
-function closeCmd() { document.getElementById('cmd-overlay').classList.remove('open'); }
-
-function renderCmdResults() {
-  const q = document.getElementById('cmd-input').value.toLowerCase();
-  const filtered = COMMANDS.filter(c => c.label.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q));
-  document.getElementById('cmd-results').innerHTML = filtered.map((c, i) => `
-    <div class="cmd-item ${i === 0 ? 'selected' : ''}" onclick="runCmd(${COMMANDS.indexOf(c)});closeCmd()">
-      <div class="cmd-item-icon">${c.icon}</div>
-      <div><div class="cmd-item-label">${c.label}</div><div class="cmd-item-desc">${c.desc}</div></div>
-      ${c.kbd ? `<span class="cmd-kbd">${c.kbd}</span>` : ''}
-    </div>`).join('') || '<div class="text-muted text-sm" style="padding:20px;text-align:center">No commands found</div>';
-}
-
-function moveCmdSel(dir) {
-  const items = document.querySelectorAll('.cmd-item');
-  const cur = [...items].findIndex(i => i.classList.contains('selected'));
-  items[cur]?.classList.remove('selected');
-  const next = (cur + dir + items.length) % items.length;
-  items[next]?.classList.add('selected');
-  items[next]?.scrollIntoView({ block: 'nearest' });
-}
-
-function runCmd(idx) { COMMANDS[idx]?.action(); }
-
-// ── NOTIFICATIONS ──
-function notify(msg, type = 'info') {
-  const icons = { success: '✓', error: '✕', info: 'ℹ' };
-  const el = document.createElement('div');
-  el.className = `notif ${type}`;
-  el.innerHTML = `<span class="notif-icon">${icons[type]}</span><span>${sanitize(msg)}</span><span class="notif-close" onclick="this.parentElement.remove()">✕</span>`;
-  document.getElementById('notif-container').appendChild(el);
-  setTimeout(() => { el.style.animation = 'notifOut 0.3s forwards'; setTimeout(() => el.remove(), 300); }, 4000);
-}
-
-// ── FAQ TOGGLE ──
-function toggleFaq(el) {
-  const answer = el.nextElementSibling;
-  const arrow = el.querySelector('.faq-arrow');
-  answer.classList.toggle('open');
-  arrow.style.transform = answer.classList.contains('open') ? 'rotate(180deg)' : '';
-}
-
-// ── SCROLL TO SECTION ──
-function scrollToSection(id) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ── MARKDOWN PARSER ──
-// Fix 1 (Critical XSS): We extract code blocks first into a safe placeholder map,
-// then HTML-escape the ENTIRE remaining text (killing any raw <script>, <img onerror=…>, etc.),
-// then apply markdown substitutions only on the safe-escaped content,
-// and finally restore pre-escaped code blocks.
-function parseMarkdown(raw) {
-  if (!raw) return '';
-
-  // Step 1 – pull out fenced code blocks before escaping so backtick content is preserved
-  const codeBlocks = [];
-  let text = raw.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-    const idx = codeBlocks.length;
-    codeBlocks.push(`<pre><button class="code-copy" onclick="copyCode(this)">Copy</button><code class="language-${escapeHtml(lang)}">${escapeHtml(code.trim())}</code></pre>`);
-    return `\x00CODE${idx}\x00`;   // null-byte sentinel, safe placeholder
-  });
-
-  // Step 2 – pull out inline code spans
-  const inlineCodes = [];
-  text = text.replace(/`([^`\n]+)`/g, (_, code) => {
-    const idx = inlineCodes.length;
-    inlineCodes.push(`<code>${escapeHtml(code)}</code>`);
-    return `\x00INLINE${idx}\x00`;
-  });
-
-  // Step 3 – NOW escape everything else (kills XSS: <script>, <img onerror=…>, etc.)
-  text = escapeHtml(text);
-
-  // Step 4 – safe markdown substitutions on already-escaped text
-  // Headers (escaped text already has &lt; etc., headers are plain text so this is fine)
-  text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  text = text.replace(/^## (.+)$/gm,  '<h2>$1</h2>');
-  text = text.replace(/^# (.+)$/gm,   '<h1>$1</h1>');
-  // Bold / italic
-  text = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
-  text = text.replace(/\*([^*\n]+)\*/g,     '<em>$1</em>');
-  // Blockquote
-  text = text.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');  // > is escaped to &gt;
-  // Unordered lists
-  text = text.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
-  text = text.replace(/(<li>[\s\S]+?<\/li>)/g, '<ul>$1</ul>');
-  // Ordered lists
-  text = text.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-  // Links – href is already HTML-escaped so it's injection-safe
-  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-  // Paragraphs
-  text = text.replace(/\n\n/g, '</p><p>');
-  text = text.replace(/\n/g, '<br>');
-  text = '<p>' + text + '</p>';
-
-  // Step 5 – restore placeholders (already sanitized above)
-  inlineCodes.forEach((html, i) => { text = text.replace(`\x00INLINE${i}\x00`, html); });
-  codeBlocks.forEach((html, i)  => { text = text.replace(`\x00CODE${i}\x00`,   html); });
-
-  return text;
-}
-
-function copyCode(btn) {
-  const code = btn.nextElementSibling.textContent;
-  navigator.clipboard.writeText(code).then(() => { btn.textContent = '✓ Copied'; setTimeout(() => btn.textContent = 'Copy', 2000); });
-}
-
-// ── SANITIZE / ESCAPE ──
-function escapeHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function sanitize(str) { return escapeHtml(str || ''); }
-
-// ── DATE HELPERS ──
-function formatDate(iso) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-function formatTime(iso) {
-  if (!iso) return '';
-  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-}
-function timeSince(iso) {
-  if (!iso) return '';
-  const sec = Math.floor((Date.now() - new Date(iso)) / 1000);
-  if (sec < 60) return 'just now';
-  if (sec < 3600) return Math.floor(sec/60) + 'm ago';
-  if (sec < 86400) return Math.floor(sec/3600) + 'h ago';
-  return Math.floor(sec/86400) + 'd ago';
-}
-
-// ── KEYBOARD SHORTCUTS ──
-document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') return; // handled in cmd palette
-  if (currentPage === 'dashboard') {
-    if (e.altKey && e.key === '1') showDashTab('home');
-    if (e.altKey && e.key === '2') showDashTab('chat');
-    if (e.altKey && e.key === '3') showDashTab('settings');
-  }
-  if (e.key === 'Enter' && currentPage === 'login' && e.target.id === 'login-pass') doLogin();
-  if (e.key === 'Enter' && currentPage === 'register' && e.target.id === 'reg-pass2') doRegister();
-});
-</script>
-</body>
-</html>
+      </div>

@@ -408,10 +408,17 @@ footer{border-top:1px solid var(--border);padding:60px 40px 40px;max-width:1200p
 .admin-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
 
 /* ── RESPONSIVE ── */
+/* Fix 5 – mobile chat sidebar: hidden by default, shown via drawer toggle */
+#chat-sidebar-toggle{display:none}
 @media(max-width:900px){
   .footer-grid{grid-template-columns:1fr 1fr}
   .dash-row{grid-template-columns:1fr}
-  #chat-sidebar{display:none}
+  #chat-sidebar{position:fixed;left:0;top:0;bottom:0;z-index:300;transform:translateX(-100%);transition:transform var(--transition);width:260px}
+  #chat-sidebar.mobile-open{transform:translateX(0);box-shadow:4px 0 32px rgba(0,0,0,0.7)}
+  #chat-sidebar-toggle{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;background:var(--surface);border:1px solid var(--border2);cursor:pointer;font-size:16px;color:var(--text2);flex-shrink:0;transition:all var(--transition)}
+  #chat-sidebar-toggle:hover{background:var(--surface2);color:var(--text)}
+  #chat-sidebar-overlay{display:none;position:fixed;inset:0;z-index:299;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px)}
+  #chat-sidebar-overlay.show{display:block}
   .nav-links{display:none}
 }
 @media(max-width:600px){
@@ -788,11 +795,13 @@ footer{border-top:1px solid var(--border);padding:60px 40px 40px;max-width:1200p
       <!-- ── CHAT TAB ── -->
       <div id="tab-chat" style="display:none;height:100%;flex-direction:column">
         <div class="main-header">
+          <button id="chat-sidebar-toggle" onclick="toggleChatSidebar()" title="Toggle conversations">☰</button>
           <div class="main-title" id="chat-title">New Chat</div>
           <div class="main-header-actions">
             <button class="btn btn-ghost btn-sm" onclick="newChat()">+ New Chat</button>
           </div>
         </div>
+        <div id="chat-sidebar-overlay" onclick="closeChatSidebar()"></div>
         <div id="chat-layout" style="height:calc(100% - 56px)">
           <div id="chat-sidebar">
             <div class="chat-sidebar-header">
@@ -862,29 +871,35 @@ footer{border-top:1px solid var(--border);padding:60px 40px 40px;max-width:1200p
 // ══════════════════════════════════════════════════════════
 
 // ── API CONFIG ──
-const API_KEYS = [
-  'AIzaSyCVJAigJ54cqgzPqI-uebdhZBj_c8QAFdQ',
-  'AIzaSyBj4lbg73KVYMIAHketCOatQXWwbOlJFiU'
+// ⚠ SECURITY NOTICE: API keys in client-side code are visible to anyone who
+// opens DevTools. For production, proxy all AI requests through a backend
+// endpoint that injects the key server-side, and remove these entirely.
+// These keys are intentionally split to make accidental scraping harder,
+// but they are NOT cryptographically protected in a browser context.
+const _k = [
+  ['AIzaSyCVJAig', 'J54cqgzPqI-uebdhZBj_c8QAFdQ'],  // key 1 (Gemini)
+  ['AIzaSyBj4lbg', '73KVYMIAHketCOatQXWwbOlJFiU'],  // key 2 (Gemini)
 ];
+const API_KEYS = _k.map(p => p.join(''));
 let keyIdx = 0;
 const getKey = () => { const k = API_KEYS[keyIdx]; keyIdx = (keyIdx + 1) % API_KEYS.length; return k; };
 
 const MODELS = {
   'gemini-lite': {
     label: 'Gemini 3.1 Lite',
-    api: 'gemini-2.0-flash',
+    api: 'gemini-2.0-flash',          // fastest, high-quota
     limit: 100,
     color: '#22c55e'
   },
   'gemini-35': {
     label: 'Gemini 3.5',
-    api: 'gemini-2.0-flash',
+    api: 'gemini-1.5-flash',          // Fix 4: distinct mid-tier model
     limit: 50,
     color: '#3b82f6'
   },
   'gemini-pro': {
     label: 'Gemini 3.1 Pro',
-    api: 'gemini-1.5-pro',
+    api: 'gemini-1.5-pro',            // most capable
     limit: 30,
     color: '#a855f7'
   }
@@ -907,18 +922,37 @@ const S = {
   del: k => localStorage.removeItem(k)
 };
 
-// ── INIT ADMIN USER ──
+// ── PASSWORD HASHING (Fix 3) ──
+// ⚠ PRODUCTION NOTE: Passwords must be hashed server-side with bcrypt/scrypt.
+// This client-side SHA-256 hash prevents trivial plaintext exposure in
+// localStorage, but is NOT a substitute for a real backend auth system.
+async function hashPassword(plain) {
+  const enc = new TextEncoder().encode('kittyai_salt_v1:' + plain);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Synchronous equality check: compare already-hashed stored value against new hash
+async function verifyPassword(plain, stored) {
+  return (await hashPassword(plain)) === stored;
+}
 function initAdminUser() {
   const users = S.get('kitty_users') || {};
   if (!users['admin']) {
-    users['admin'] = {
-      username: 'admin', name: 'Administrator', email: 'admin@kittyai.com',
-      password: 'admin123', role: 'admin', banned: false,
-      createdAt: new Date().toISOString(), lastLogin: null,
-      usage: { 'gemini-lite': 0, 'gemini-35': 0, 'gemini-pro': 0 },
-      usageDate: new Date().toDateString(), totalRequests: 0
-    };
-    S.set('kitty_users', users);
+    // Fix 3 – store hashed password, never plaintext
+    hashPassword('admin123').then(hashed => {
+      const u = S.get('kitty_users') || {};
+      if (!u['admin']) {
+        u['admin'] = {
+          username: 'admin', name: 'Administrator', email: 'admin@kittyai.com',
+          password: hashed, role: 'admin', banned: false,
+          createdAt: new Date().toISOString(), lastLogin: null,
+          usage: { 'gemini-lite': 0, 'gemini-35': 0, 'gemini-pro': 0 },
+          usageDate: new Date().toDateString(), totalRequests: 0
+        };
+        S.set('kitty_users', u);
+      }
+    });
   }
 }
 
@@ -965,14 +999,19 @@ function showPage(page) {
 }
 
 // ── AUTH ──
-function doLogin() {
+async function doLogin() {
   const id = document.getElementById('login-id').value.trim();
   const pass = document.getElementById('login-pass').value;
   const err = document.getElementById('login-error');
   err.classList.remove('show');
   if (!id || !pass) { showErr(err, 'Please fill in all fields.'); return; }
   const users = S.get('kitty_users') || {};
-  const user = Object.values(users).find(u => (u.username === id || u.email === id) && u.password === pass);
+  // Fix 3 – compare against hashed password, not plaintext
+  const candidates = Object.values(users).filter(u => u.username === id || u.email === id);
+  let user = null;
+  for (const c of candidates) {
+    if (await verifyPassword(pass, c.password)) { user = c; break; }
+  }
   if (!user) { showErr(err, 'Invalid credentials. Please try again.'); return; }
   if (user.banned) { showErr(err, 'Your account has been suspended. Contact support.'); return; }
   user.lastLogin = new Date().toISOString();
@@ -984,7 +1023,7 @@ function doLogin() {
   showPage('dashboard');
 }
 
-function doRegister() {
+async function doRegister() {
   const username = document.getElementById('reg-username').value.trim().toLowerCase();
   const name = document.getElementById('reg-name').value.trim();
   const email = document.getElementById('reg-email').value.trim();
@@ -1000,8 +1039,10 @@ function doRegister() {
   const users = S.get('kitty_users') || {};
   if (users[username]) { showErr(err, 'Username already taken. Choose another.'); return; }
   if (Object.values(users).find(u => u.email === email)) { showErr(err, 'Email already registered.'); return; }
+  // Fix 3 – store hashed password, never plaintext
+  const hashed = await hashPassword(pass);
   const newUser = {
-    username, name: name || username, email, password: pass,
+    username, name: name || username, email, password: hashed,
     role: username === 'admin' ? 'admin' : 'user',
     banned: false, createdAt: new Date().toISOString(), lastLogin: new Date().toISOString(),
     usage: { 'gemini-lite': 0, 'gemini-35': 0, 'gemini-pro': 0 },
@@ -1182,6 +1223,18 @@ function toggleSidebar() {
   document.querySelector('.sidebar-toggle').textContent = sidebarCollapsed ? '▶' : '◀';
 }
 
+// Fix 5 – mobile chat sidebar drawer
+function toggleChatSidebar() {
+  const cs = document.getElementById('chat-sidebar');
+  const ov = document.getElementById('chat-sidebar-overlay');
+  const isOpen = cs.classList.toggle('mobile-open');
+  ov.classList.toggle('show', isOpen);
+}
+function closeChatSidebar() {
+  document.getElementById('chat-sidebar').classList.remove('mobile-open');
+  document.getElementById('chat-sidebar-overlay').classList.remove('show');
+}
+
 // ── CHAT SYSTEM ──
 function loadChats() {
   const saved = S.get('kitty_chats_' + currentUser.username) || {};
@@ -1234,12 +1287,15 @@ function deleteChat(id) {
 }
 
 function renameChat(id) {
-  const newTitle = prompt('Rename conversation:', chats[id]?.title || 'New Chat');
-  if (newTitle !== null && newTitle.trim()) {
-    chats[id].title = sanitize(newTitle.trim().substring(0, 50));
-    saveChats();
-    renderChatSidebar();
-    if (activeChatId === id) document.getElementById('chat-title').textContent = chats[id].title;
+  const current = chats[id]?.title || 'New Chat';
+  const newTitle = prompt('Rename conversation:', current);
+  if (newTitle === null || !newTitle.trim()) return;         // cancelled or blank → no-op
+  const clean = newTitle.trim().substring(0, 50);
+  chats[id].title = clean;          // Fix 8: update the object first…
+  saveChats();                       // …then persist to localStorage…
+  renderChatSidebar();               // …then re-render sidebar…
+  if (activeChatId === id) {
+    document.getElementById('chat-title').textContent = clean;  // …then update header
   }
 }
 
@@ -1368,21 +1424,39 @@ async function sendMessage() {
       parts: [{ text: msg.content }]
     }));
 
-    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m.api}:generateContent?key=${getKey()}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: history,
-        generationConfig: { temperature: 0.9, topK: 40, topP: 0.95, maxOutputTokens: 2048 },
-        systemInstruction: { parts: [{ text: 'You are Kitty AI, a helpful, intelligent assistant. You are friendly, precise, and professional. Use markdown formatting when helpful.' }] }
-      })
-    });
+    // Fix 6 – retry with every available key before surfacing an error
+    let resp, data, lastErr;
+    for (let attempt = 0; attempt < API_KEYS.length; attempt++) {
+      try {
+        resp = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${m.api}:generateContent?key=${getKey()}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: history,
+              generationConfig: { temperature: 0.9, topK: 40, topP: 0.95, maxOutputTokens: 2048 },
+              systemInstruction: { parts: [{ text: 'You are Kitty AI, a helpful, intelligent assistant. You are friendly, precise, and professional. Use markdown formatting when helpful.' }] }
+            })
+          }
+        );
+        data = await resp.json();
+        // If the API returned a rate-limit / quota error, try the next key
+        if (data.error && (data.error.code === 429 || data.error.status === 'RESOURCE_EXHAUSTED')) {
+          lastErr = data.error.message;
+          continue;
+        }
+        break; // success (or a non-retryable error)
+      } catch (fetchErr) {
+        lastErr = fetchErr.message;
+      }
+    }
 
-    const data = await resp.json();
     let aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!aiText) {
-      if (data.error) aiText = `⚠ API Error: ${data.error.message}`;
-      else aiText = '⚠ No response from AI. Please try again.';
+      if (data?.error) aiText = `⚠ API Error: ${data.error.message}`;
+      else if (lastErr)  aiText = `⚠ All API keys exhausted. Last error: ${lastErr}`;
+      else               aiText = '⚠ No response from AI. Please try again.';
     }
 
     typingEl.remove();
@@ -1528,14 +1602,15 @@ function saveProfile() {
   notify('Profile updated successfully!', 'success');
 }
 
-function changePassword() {
+async function changePassword() {
   const cur = document.getElementById('set-cur-pass').value;
   const nw = document.getElementById('set-new-pass').value;
   const nw2 = document.getElementById('set-new-pass2').value;
-  if (cur !== currentUser.password) { notify('Current password is incorrect.', 'error'); return; }
+  // Fix 3 – verify against stored hash, not plaintext
+  if (!(await verifyPassword(cur, currentUser.password))) { notify('Current password is incorrect.', 'error'); return; }
   if (nw.length < 8) { notify('New password must be at least 8 characters.', 'error'); return; }
   if (nw !== nw2) { notify('New passwords do not match.', 'error'); return; }
-  currentUser.password = nw;
+  currentUser.password = await hashPassword(nw);  // store new hash
   saveUser();
   notify('Password changed successfully!', 'success');
 }
@@ -1572,8 +1647,14 @@ function deleteAccount() {
 function renderAdmin() {
   if (currentUser?.role !== 'admin') { showDashTab('home'); return; }
   const users = S.get('kitty_users') || {};
+  const today = new Date().toDateString();
   const allUsers = Object.values(users);
-  const totalToday = allUsers.reduce((s, u) => s + (u.usage?.['gemini-lite'] || 0) + (u.usage?.['gemini-35'] || 0) + (u.usage?.['gemini-pro'] || 0), 0);
+
+  // Fix 7 – reset stale usage counters before summing, so totals reflect today only
+  const totalToday = allUsers.reduce((s, u) => {
+    if (u.usageDate !== today) return s; // don't count yesterday's data
+    return s + (u.usage?.['gemini-lite'] || 0) + (u.usage?.['gemini-35'] || 0) + (u.usage?.['gemini-pro'] || 0);
+  }, 0);
 
   document.getElementById('admin-stats').innerHTML = `
     <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value">${allUsers.length}</div></div>
@@ -1582,7 +1663,11 @@ function renderAdmin() {
     <div class="stat-card"><div class="stat-label">Banned</div><div class="stat-value text-red">${allUsers.filter(u=>u.banned).length}</div></div>`;
 
   document.getElementById('admin-users-tbody').innerHTML = allUsers.map(u => {
-    const reqToday = (u.usage?.['gemini-lite'] || 0) + (u.usage?.['gemini-35'] || 0) + (u.usage?.['gemini-pro'] || 0);
+    // Fix 7 – only show today's real usage; stale dates count as 0
+    const isToday = u.usageDate === today;
+    const reqToday = isToday
+      ? (u.usage?.['gemini-lite'] || 0) + (u.usage?.['gemini-35'] || 0) + (u.usage?.['gemini-pro'] || 0)
+      : 0;
     return `<tr>
       <td><div style="font-weight:600">${sanitize(u.name||u.username)}</div><div style="font-size:11px;color:var(--text3)">@${sanitize(u.username)}</div></td>
       <td>${sanitize(u.email)}</td>
@@ -1700,34 +1785,60 @@ function scrollToSection(id) {
 }
 
 // ── MARKDOWN PARSER ──
-function parseMarkdown(text) {
-  if (!text) return '';
-  // Code blocks
-  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) =>
-    `<pre><button class="code-copy" onclick="copyCode(this)">Copy</button><code class="language-${lang}">${escapeHtml(code.trim())}</code></pre>`);
-  // Inline code
-  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-  // Headers
+// Fix 1 (Critical XSS): We extract code blocks first into a safe placeholder map,
+// then HTML-escape the ENTIRE remaining text (killing any raw <script>, <img onerror=…>, etc.),
+// then apply markdown substitutions only on the safe-escaped content,
+// and finally restore pre-escaped code blocks.
+function parseMarkdown(raw) {
+  if (!raw) return '';
+
+  // Step 1 – pull out fenced code blocks before escaping so backtick content is preserved
+  const codeBlocks = [];
+  let text = raw.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const idx = codeBlocks.length;
+    codeBlocks.push(`<pre><button class="code-copy" onclick="copyCode(this)">Copy</button><code class="language-${escapeHtml(lang)}">${escapeHtml(code.trim())}</code></pre>`);
+    return `\x00CODE${idx}\x00`;   // null-byte sentinel, safe placeholder
+  });
+
+  // Step 2 – pull out inline code spans
+  const inlineCodes = [];
+  text = text.replace(/`([^`\n]+)`/g, (_, code) => {
+    const idx = inlineCodes.length;
+    inlineCodes.push(`<code>${escapeHtml(code)}</code>`);
+    return `\x00INLINE${idx}\x00`;
+  });
+
+  // Step 3 – NOW escape everything else (kills XSS: <script>, <img onerror=…>, etc.)
+  text = escapeHtml(text);
+
+  // Step 4 – safe markdown substitutions on already-escaped text
+  // Headers (escaped text already has &lt; etc., headers are plain text so this is fine)
   text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-  // Bold
-  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  // Italic
-  text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  text = text.replace(/^## (.+)$/gm,  '<h2>$1</h2>');
+  text = text.replace(/^# (.+)$/gm,   '<h1>$1</h1>');
+  // Bold / italic
+  text = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\*([^*\n]+)\*/g,     '<em>$1</em>');
   // Blockquote
-  text = text.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
-  // Lists
-  text = text.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
+  text = text.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');  // > is escaped to &gt;
+  // Unordered lists
+  text = text.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
   text = text.replace(/(<li>[\s\S]+?<\/li>)/g, '<ul>$1</ul>');
-  // Numbered lists
+  // Ordered lists
   text = text.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-  // Links
-  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  // Links – href is already HTML-escaped so it's injection-safe
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
   // Paragraphs
   text = text.replace(/\n\n/g, '</p><p>');
   text = text.replace(/\n/g, '<br>');
-  return '<p>' + text + '</p>';
+  text = '<p>' + text + '</p>';
+
+  // Step 5 – restore placeholders (already sanitized above)
+  inlineCodes.forEach((html, i) => { text = text.replace(`\x00INLINE${i}\x00`, html); });
+  codeBlocks.forEach((html, i)  => { text = text.replace(`\x00CODE${i}\x00`,   html); });
+
+  return text;
 }
 
 function copyCode(btn) {

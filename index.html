@@ -553,20 +553,20 @@ input,textarea,button{font-family:inherit}
 </div>
 
 <script>
-// ========== CONFIG ==========
-const MODEL_MAP={'kitty.ai':'llama-3.3-70b-versatile'};
+// ========== CONFIG - REPLACE WITH YOUR GROQ KEY ==========
+const GROQ_KEY = 'gsk_YOUR_GROQ_API_KEY_HERE';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
+
+const MODEL_MAP={'kitty.ai':GROQ_MODEL};
 const LIMITS={'kitty.ai':180};
 const MCOLS={'kitty.ai':'#b97fff'};
 let CU=null,chats={},aChat=null,aiTyping=false,sbColl=false,cPage='loading',cTab='home';
 
-// ========== STORAGE ==========
 const S={get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),del:k=>localStorage.removeItem(k)};
 
-// ========== HASH ==========
 async function hashPw(p){const e=new TextEncoder().encode('kd_v1:'+p);const b=await crypto.subtle.digest('SHA-256',e);return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function verifyPw(p,h){return(await hashPw(p))===h}
 
-// ========== HELPERS ==========
 function mkUser(u,n,e,pw,r='user'){return{username:u,name:n,email:e,password:pw,role:r,banned:false,createdAt:new Date().toISOString(),lastLogin:null,usage:{'kitty.ai':0},usageDate:new Date().toDateString(),totalRequests:0}}
 function showErr(el,m){el.textContent=m;el.classList.add('show')}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
@@ -577,18 +577,14 @@ function refreshUser(){const u=S.get('kd_users')||{};if(CU&&u[CU.username])CU=u[
 function saveUser(){const u=S.get('kd_users')||{};u[CU.username]=CU;S.set('kd_users',u)}
 function resetDaily(){const t=new Date().toDateString();if(CU.usageDate!==t){CU.usage={'kitty.ai':0};CU.usageDate=t;saveUser()}}
 
-// ========== LOAD ==========
 window.addEventListener('load',()=>{setTimeout(()=>{const ls=document.getElementById('loading');if(ls){ls.style.opacity='0';setTimeout(()=>ls.remove(),400)}const s=S.get('kd_session');if(s){const u=S.get('kd_users')||{};if(u[s]){CU=u[s];showPage('dashboard');return}}showPage('landing')},1500);initCmd();startClock()});
 
-// ========== PAGES ==========
 function showPage(p){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));const el=document.getElementById('page-'+p);if(el)el.classList.add('active');cPage=p;if(p==='dashboard')initDash();if(p!=='dashboard')window.scrollTo(0,0)}
 
-// ========== AUTH ==========
 async function doLogin(){const id=document.getElementById('loginId').value.trim(),pw=document.getElementById('loginPw').value,err=document.getElementById('loginErr');err.classList.remove('show');if(!id||!pw){showErr(err,'Fill in all fields.');return}const u=S.get('kd_users')||{};const cands=Object.values(u).filter(x=>x.username===id||x.email===id);let user=null;for(const c of cands){if(await verifyPw(pw,c.password)){user=c;break}}if(!user){showErr(err,'Incorrect credentials.');return}if(user.banned){showErr(err,'Account suspended.');return}user.lastLogin=new Date().toISOString();const u2=S.get('kd_users')||{};u2[user.username]=user;S.set('kd_users',u2);S.set('kd_session',user.username);CU=user;notify('Welcome back, '+(user.name||user.username)+'!','success');showPage('dashboard')}
 async function doRegister(){const un=document.getElementById('regUser').value.trim().toLowerCase(),nm=document.getElementById('regName').value.trim(),em=document.getElementById('regEmail').value.trim(),pw=document.getElementById('regPw').value,pw2=document.getElementById('regPw2').value,err=document.getElementById('regErr');err.classList.remove('show');if(!un||!em||!pw){showErr(err,'All fields required.');return}if(un.length<3){showErr(err,'Username min 3 chars.');return}if(pw.length<8){showErr(err,'Password min 8 chars.');return}if(pw!==pw2){showErr(err,'Passwords do not match.');return}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){showErr(err,'Invalid email.');return}const u=S.get('kd_users')||{};if(u[un]){showErr(err,'Username taken.');return}if(Object.values(u).find(x=>x.email===em)){showErr(err,'Email registered.');return}const h=await hashPw(pw);const nu=mkUser(un,nm||un,em,h,un==='admin'?'admin':'user');nu.lastLogin=new Date().toISOString();u[un]=nu;S.set('kd_users',u);S.set('kd_session',un);CU=nu;notify('Account created! Welcome.','success');showPage('dashboard')}
 function doLogout(){S.del('kd_session');CU=null;chats={};aChat=null;notify('Signed out.','info');showPage('landing')}
 
-// ========== DASHBOARD ==========
 function initDash(){if(!CU)return;refreshUser();resetDaily();document.getElementById('sbName').textContent=CU.name||CU.username;document.getElementById('sbRole').textContent=CU.role;document.getElementById('sbAv').textContent=(CU.name||CU.username)[0].toUpperCase();document.getElementById('hdate').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});if(CU.role==='admin')document.getElementById('nav-admin').style.display='flex';loadChats();showTab('home')}
 function showTab(tab){cTab=tab;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.sbitem').forEach(n=>n.classList.remove('active'));const te=document.getElementById('tab-'+tab);if(te)te.classList.add('active');const ne=document.getElementById('nav-'+tab);if(ne)ne.classList.add('active');const titles={home:'Dashboard',chat:'Chat',settings:'Settings',admin:'Admin Panel'};document.getElementById('mhtitle').textContent=titles[tab]||'';if(tab==='home')renderHome();if(tab==='chat'){renderThreadList();renderActiveChat();updateUsageRow()}if(tab==='settings')renderSettings();if(tab==='admin')renderAdmin();closeSb()}
 function renderHome(){refreshUser();resetDaily();const u=CU,tot=u.usage['kitty.ai']||0,cap=180,cc=Object.keys(S.get('kd_chats_'+u.username)||{}).length;document.getElementById('kpigrid').innerHTML=`<div class="kcard acc"><div class="klabel">Used Today</div><div class="kval">${tot}</div><div class="kbar"><div class="kbarfill" style="width:${Math.min(100,tot/cap*100)}%"></div></div><div class="ksub">${tot}/${cap}</div></div><div class="kcard"><div class="klabel">Remaining</div><div class="kval">${cap-tot}</div><div class="ksub">requests left</div></div><div class="kcard"><div class="klabel">Chats</div><div class="kval">${cc}</div><div class="ksub">saved</div></div><div class="kcard"><div class="klabel">Role</div><div class="kval" style="font-size:20px">${u.role==='admin'?'🛡':'👤'}</div><div class="ksub">${u.role}</div></div>`;
@@ -603,7 +599,6 @@ function closeSb(){document.getElementById('sidebar').classList.remove('open');d
 function loadChats(){chats=S.get('kd_chats_'+CU.username)||{}}
 function saveChats(){S.set('kd_chats_'+CU.username,chats)}
 
-// ========== CHAT ==========
 function newChat(){const id='c'+Date.now();chats[id]={id,title:'New Chat',messages:[],model:'kitty.ai',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};aChat=id;saveChats();renderThreadList();renderActiveChat();updateUsageRow();if(cTab!=='chat')showTab('chat')}
 function selectChat(id){aChat=id;renderThreadList();renderActiveChat();updateUsageRow();closeTp()}
 function deleteChat(id){if(!confirm('Delete this conversation?'))return;delete chats[id];if(aChat===id)aChat=null;saveChats();renderThreadList();renderActiveChat()}
@@ -614,7 +609,7 @@ function buildCES(){const d=document.createElement('div');d.className='ces';d.in
 function buildMsg(m,idx){const d=document.createElement('div');d.className=`msg ${m.role}`;const av=m.role==='user'?(CU?.name?.[0]?.toUpperCase()||'U'):'🐱';d.innerHTML=`<div class="msgav">${av}</div><div class="msgbody"><div class="msgbub">${m.role==='ai'?parseMd(m.content):esc(m.content)}</div><div class="msgmeta"><span class="msgtime">${fTime(m.timestamp)}</span><button class="msgact" onclick="copyMsg(this,${idx})">Copy</button>${m.role==='ai'?`<button class="msgact" onclick="regenMsg(${idx})">↻ Retry</button>`:''}</div></div>`;return d}
 function sendSug(t){if(!aChat)newChat();document.getElementById('chatTA').value=t;sendMsg()}
 
-// ========== SEND MESSAGE (FIXED - calls /api/chat) ==========
+// ========== SEND MESSAGE - DIRECT GROQ API ==========
 async function sendMsg(){
   const ta=document.getElementById('chatTA'),text=ta.value.trim();
   if(!text||aiTyping)return;
@@ -643,14 +638,24 @@ async function sendMsg(){
   document.getElementById('chatTitle').textContent=ch.title;
 
   try {
-    const hist=ch.messages.filter(m=>m.role!=='ai'||!m.content.startsWith('...')).slice(-12).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
-    const resp=await fetch('/api/chat',{
+    const hist=ch.messages.filter(m=>m.content!=='...').slice(-20).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
+    
+    const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:hist})
+      headers:{
+        'Authorization':`Bearer ${GROQ_KEY}`,
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+        model:GROQ_MODEL,
+        messages:hist,
+        temperature:0.7,
+        max_tokens:2048
+      })
     });
+    
     const data=await resp.json();
-    let txt=data?.choices?.[0]?.message?.content || data?.reply;
+    let txt=data?.choices?.[0]?.message?.content;
     if(!txt)txt='⚠ No response received.';
     te.remove();
     const am={role:'ai',content:txt,timestamp:new Date().toISOString(),model};
@@ -681,7 +686,6 @@ function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrol
 function openTp(){document.getElementById('threadPanel').classList.add('open');document.getElementById('threadOv').classList.add('show')}
 function closeTp(){document.getElementById('threadPanel').classList.remove('open');document.getElementById('threadOv').classList.remove('show')}
 
-// ========== SETTINGS ==========
 function renderSettings(){document.getElementById('setContent').innerHTML=`<div class="setcard"><div class="setctitle">Profile</div><div class="setform"><div class="field"><label class="flabel">Display Name</label><input class="inp" id="setName" value="${esc(CU.name||'')}"></div><div class="field"><label class="flabel">Email</label><input class="inp" id="setEmail" value="${esc(CU.email)}"></div><button class="btn btn-primary btn-sm" onclick="saveProfile()" style="align-self:flex-start">Save Changes</button></div></div><div class="setcard"><div class="setctitle">Change Password</div><div class="setform"><div class="field"><label class="flabel">Current Password</label><input class="inp" id="setCurPw" type="password" placeholder="Current password"></div><div class="field"><label class="flabel">New Password</label><input class="inp" id="setNewPw" type="password" placeholder="Min. 8 characters"></div><div class="field"><label class="flabel">Confirm New Password</label><input class="inp" id="setNewPw2" type="password" placeholder="Repeat new password"></div><button class="btn btn-primary btn-sm" onclick="changePw()" style="align-self:flex-start">Update Password</button></div></div><div class="setcard"><div class="setctitle">Data &amp; Privacy</div><div class="setrow"><div class="setrinfo"><div class="setrlabel">Export Conversations</div><div class="setrdesc">Download all chats as JSON</div></div><button class="btn btn-ghost btn-sm" onclick="exportChats()">Export</button></div><div class="setrow"><div class="setrinfo"><div class="setrlabel">Clear All Chats</div><div class="setrdesc">Permanently delete all conversation history</div></div><button class="btn btn-danger btn-sm" onclick="clearChats()">Clear</button></div></div><div class="setcard dangcard"><div class="setctitle">Danger Zone</div><div class="setrow"><div class="setrinfo"><div class="setrlabel">Delete Account</div><div class="setrdesc">Permanently delete your account and all data</div></div><button class="btn btn-danger btn-sm" onclick="deleteAcct()">Delete Account</button></div></div>`}
 function saveProfile(){const n=document.getElementById('setName').value.trim(),e=document.getElementById('setEmail').value.trim();if(!n||!e){notify('Fill in all fields.','error');return}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)){notify('Invalid email.','error');return}CU.name=n;CU.email=e;saveUser();document.getElementById('sbName').textContent=n;document.getElementById('sbAv').textContent=n[0].toUpperCase();notify('Profile updated!','success')}
 async function changePw(){const cur=document.getElementById('setCurPw').value,nw=document.getElementById('setNewPw').value,nw2=document.getElementById('setNewPw2').value;if(!(await verifyPw(cur,CU.password))){notify('Current password incorrect.','error');return}if(nw.length<8){notify('New password min 8 chars.','error');return}if(nw!==nw2){notify('Passwords do not match.','error');return}CU.password=await hashPw(nw);saveUser();notify('Password changed!','success');['setCurPw','setNewPw','setNewPw2'].forEach(id=>document.getElementById(id).value='')}
@@ -689,12 +693,10 @@ function exportChats(){const d={user:CU.username,exportDate:new Date().toISOStri
 function clearChats(){if(!confirm('Delete ALL conversations? Cannot be undone.'))return;chats={};aChat=null;S.del('kd_chats_'+CU.username);notify('All chats deleted.','info')}
 function deleteAcct(){if(!confirm('Permanently delete account and all data?'))return;const u=S.get('kd_users')||{};delete u[CU.username];S.set('kd_users',u);S.del('kd_session');S.del('kd_chats_'+CU.username);CU=null;notify('Account deleted.','info');showPage('landing')}
 
-// ========== ADMIN ==========
 function renderAdmin(){if(CU?.role!=='admin'){showTab('home');return}const u=S.get('kd_users')||{},list=Object.values(u),today=new Date().toDateString(),tt=list.reduce((s,x)=>s+(x.usageDate===today?Object.values(x.usage||{}).reduce((a,b)=>a+b,0):0),0);document.getElementById('admKpi').innerHTML=`<div class="kcard"><div class="klabel">Users</div><div class="kval">${list.length}</div></div><div class="kcard acc"><div class="klabel">Requests Today</div><div class="kval">${tt}</div></div><div class="kcard"><div class="klabel">Active</div><div class="kval">${list.filter(x=>!x.banned).length}</div></div><div class="kcard"><div class="klabel">Banned</div><div class="kval">${list.filter(x=>x.banned).length}</div></div>`;document.getElementById('admTbody').innerHTML=list.map(x=>{const r=x.usageDate===today?Object.values(x.usage||{}).reduce((a,b)=>a+b,0):0;return`<tr><td><div style="font-weight:600">${esc(x.name||x.username)}</div><div style="font-size:10px;color:var(--ghost)">@${esc(x.username)}</div></td><td style="color:var(--mist)">${esc(x.email)}</td><td><span class="rbadge ${x.role}">${x.role}</span></td><td style="font-family:'JetBrains Mono',monospace">${r}</td><td style="color:var(--mist)">${fDate(x.createdAt)}</td><td><span class="sindic"><span class="sdot ${x.banned?'banned':'active'}"></span>${x.banned?'Banned':'Active'}</span></td><td><div class="admactions">${x.username!=='admin'?`<button class="btn btn-sm ${x.banned?'btn-ghost':'btn-danger'}" onclick="admBan('${x.username}')">${x.banned?'Unban':'Ban'}</button>`:''} ${x.username!==CU?.username&&x.username!=='admin'?`<button class="btn btn-sm btn-danger" onclick="admDel('${x.username}')">Del</button>`:''}</div></td></tr>`}).join('')}
 function admBan(un){const u=S.get('kd_users')||{};if(!u[un])return;u[un].banned=!u[un].banned;S.set('kd_users',u);notify(`@${un} ${u[un].banned?'banned':'unbanned'}.`,u[un].banned?'error':'success');renderAdmin()}
 function admDel(un){if(!confirm(`Delete @${un}?`))return;const u=S.get('kd_users')||{};delete u[un];S.set('kd_users',u);S.del('kd_chats_'+un);notify(`@${un} deleted.`,'info');renderAdmin()}
 
-// ========== COMMAND PALETTE ==========
 const CMDS=[{ico:'⊞',lbl:'Dashboard',fn:()=>showTab('home')},{ico:'💬',lbl:'New Chat',fn:()=>{showTab('chat');newChat()}},{ico:'⚙',lbl:'Settings',fn:()=>showTab('settings')},{ico:'🏠',lbl:'Home Page',fn:()=>showPage('landing')},{ico:'📤',lbl:'Export Chats',fn:()=>exportChats()},{ico:'⎋',lbl:'Sign Out',fn:()=>doLogout()}];
 function initCmd(){const ov=document.getElementById('cmdOv'),inp=document.getElementById('cmdInp');document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();toggleCmd()}if(e.key==='Escape')closeCmd()});ov.addEventListener('click',e=>{if(e.target===ov)closeCmd()});inp.addEventListener('input',renderCmds);inp.addEventListener('keydown',e=>{if(e.key==='Enter')document.querySelector('.citem.sel')?.click();if(e.key==='ArrowDown'){e.preventDefault();moveSel(1)}if(e.key==='ArrowUp'){e.preventDefault();moveSel(-1)}});renderCmds()}
 function toggleCmd(){const o=document.getElementById('cmdOv');o.classList.toggle('open');if(o.classList.contains('open')){document.getElementById('cmdInp').value='';document.getElementById('cmdInp').focus();renderCmds()}}
@@ -702,18 +704,12 @@ function closeCmd(){document.getElementById('cmdOv').classList.remove('open')}
 function renderCmds(){const q=document.getElementById('cmdInp').value.toLowerCase(),f=CMDS.filter(c=>c.lbl.toLowerCase().includes(q));document.getElementById('cmdRes').innerHTML=f.length?f.map((c,i)=>`<div class="citem ${i===0?'sel':''}" onclick="runCmd(${CMDS.indexOf(c)});closeCmd()"><div class="cico">${c.ico}</div><div class="clabel">${c.lbl}</div></div>`).join(''):'<div style="padding:20px;text-align:center;font-size:12px;color:var(--ghost)">No commands</div>'}
 function moveSel(d){const its=document.querySelectorAll('.citem'),cur=[...its].findIndex(i=>i.classList.contains('sel'));its[cur]?.classList.remove('sel');const nx=(cur+d+its.length)%its.length;its[nx]?.classList.add('sel');its[nx]?.scrollIntoView({block:'nearest'})}
 function runCmd(idx){CMDS[idx]?.fn()}
-
-// ========== NOTIFICATIONS ==========
 function notify(msg,type='info'){const el=document.createElement('div');el.className=`notif ${type}`;el.innerHTML=`<span class="ndot"></span><span>${esc(msg)}</span><span class="nclose" onclick="this.parentElement.remove()">✕</span>`;document.getElementById('notifRoot').appendChild(el);setTimeout(()=>{el.style.animation='nfOut .28s forwards';setTimeout(()=>el.remove(),280)},4000)}
-
-// ========== MISC ==========
 function scrollToEl(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'})}
 function toggleFaq(el){const a=el.nextElementSibling,ch=el.querySelector('.faqchev');a.classList.toggle('open');ch.style.transform=a.classList.contains('open')?'rotate(180deg)':''}
 function togglePw(id,btn){const el=document.getElementById(id);el.type=el.type==='password'?'text':'password';btn.textContent=el.type==='password'?'👁':'🙈'}
 function parseMd(raw){if(!raw)return'';let blocks=[],inlines=[];let text=raw.replace(/```(\w*)\n?([\s\S]*?)```/g,(_,lang,code)=>{const i=blocks.length;blocks.push(`<pre><button class="ccbtn" onclick="copyCode(this)">Copy</button><code>${esc(code.trim())}</code></pre>`);return`\x00B${i}\x00`});text=text.replace(/`([^\`\n]+)`/g,(_,c)=>{const i=inlines.length;inlines.push(`<code>${esc(c)}</code>`);return`\x00I${i}\x00`});text=esc(text);text=text.replace(/^### (.+)$/gm,'<h3 style="font-family:\'Cabinet Grotesk\',sans-serif;font-weight:800;margin:12px 0 6px">$1</h3>');text=text.replace(/^## (.+)$/gm,'<h2 style="font-family:\'Cabinet Grotesk\',sans-serif;font-weight:900;margin:14px 0 7px">$1</h2>');text=text.replace(/^# (.+)$/gm,'<h1 style="font-family:\'Cabinet Grotesk\',sans-serif;font-weight:900;margin:16px 0 8px">$1</h1>');text=text.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');text=text.replace(/\*([^*\n]+)\*/g,'<em>$1</em>');text=text.replace(/^[-*] (.+)$/gm,'<li style="margin-left:16px;margin-bottom:3px">$1</li>');text=text.replace(/^\d+\. (.+)$/gm,'<li style="margin-left:16px;margin-bottom:3px">$1</li>');text=text.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener" style="color:var(--v);text-decoration:underline">$1</a>');text=text.replace(/\n\n/g,'</p><p style="margin:0 0 8px">').replace(/\n/g,'<br>');text='<p style="margin:0 0 8px">'+text+'</p>';inlines.forEach((h,i)=>{text=text.replace(`\x00I${i}\x00`,h)});blocks.forEach((h,i)=>{text=text.replace(`\x00B${i}\x00`,h)});return text}
 function copyCode(btn){navigator.clipboard.writeText(btn.nextElementSibling.textContent).then(()=>{btn.textContent='✓ Copied';setTimeout(()=>btn.textContent='Copy',2000)})}
-
-// ========== KEYBOARD SHORTCUTS ==========
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&cPage==='login'&&e.target.id==='loginPw')doLogin();if(e.key==='Enter'&&cPage==='register'&&e.target.id==='regPw2')doRegister();if(cPage==='dashboard'){if(e.altKey&&e.key==='1')showTab('home');if(e.altKey&&e.key==='2')showTab('chat');if(e.altKey&&e.key==='3')showTab('settings')}});
 </script>
 </body>

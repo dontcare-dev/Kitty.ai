@@ -12,7 +12,7 @@
   --b:rgba(255,255,255,0.04);--b2:rgba(255,255,255,0.07);--b3:rgba(255,255,255,0.12);
   --fg:#f5f3ff;--fg2:#b4adcc;--fg3:#6e688a;
   --accent:#a78bfa;--accent2:#7c3aed;--accent-glow:rgba(167,139,250,0.12);
-  --red:#f87171;--green:#4ade80;--amber:#fbbf24;
+  --red:#f87171;--green:#4ade80;
   --r:10px;--r2:14px;--r3:18px;--r4:24px;
   --ease:cubic-bezier(0.4,0,0.2,1);
   --sidebar-w:260px;--header-h:56px;
@@ -21,7 +21,7 @@
 html{scroll-behavior:smooth}
 body{
   font-family:'Inter',sans-serif;background:var(--bg);color:var(--fg);
-  overflow:hidden;height:100vh;-webkit-font-smoothing:antialiased;
+  overflow:hidden;height:100vh;height:100dvh;-webkit-font-smoothing:antialiased;
   background-image:radial-gradient(ellipse at 30% 20%,rgba(124,58,237,0.08),transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(167,139,250,0.05),transparent 50%);
 }
 ::selection{background:var(--accent-glow)}
@@ -31,12 +31,10 @@ input,textarea,button{font-family:inherit;border:none;outline:none}
 button{cursor:pointer;background:none;color:inherit}
 a{color:inherit;text-decoration:none}
 
-/* Glass effects */
 .glass{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .glass-light{background:var(--glass2);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 .glass-heavy{background:var(--glass3);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
 
-/* Notifications */
 #notifs{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:340px}
 .notif{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--b3);border-radius:var(--r2);padding:12px 16px;font-size:13px;display:flex;align-items:flex-start;gap:10px;pointer-events:auto;animation:slideIn .25s var(--ease);box-shadow:0 8px 32px rgba(0,0,0,.5)}
 .notif.success{border-left:3px solid var(--green)}.notif.error{border-left:3px solid var(--red)}.notif.info{border-left:3px solid var(--accent)}
@@ -44,7 +42,6 @@ a{color:inherit;text-decoration:none}
 .notif-close{margin-left:auto;cursor:pointer;color:var(--fg3);font-size:14px;flex-shrink:0;padding:0 4px}
 @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
 
-/* Loading */
 #loading{position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .4s}
 .load-icon{width:48px;height:48px;animation:pulse 2s ease infinite}
 .load-text{font-weight:800;font-size:20px;letter-spacing:-.02em}.load-text span{color:var(--accent)}
@@ -53,16 +50,14 @@ a{color:inherit;text-decoration:none}
 @keyframes pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
 @keyframes fill{from{width:0}to{width:100%}}
 
-/* Pages */
-.page{display:none;flex-direction:column;height:100vh}
+.page{display:none;flex-direction:column;height:100vh;height:100dvh}
 .page.active{display:flex;animation:fadeIn .2s var(--ease)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
-/* Buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:var(--r);font-size:13px;font-weight:600;transition:all .15s var(--ease);white-space:nowrap;letter-spacing:-.01em}
 .btn:active{transform:scale(.97)}
 .btn-primary{background:linear-gradient(135deg,var(--accent2),#8b5cf6);color:#fff;box-shadow:0 2px 12px rgba(124,58,237,.3),0 0 0 1px rgba(167,139,250,.2)}
-.btn-primary:hover{background:linear-gradient(135deg,#8b5cf6,#9f7aea);box-shadow:0 4px 20px rgba(124,58,237,.45),0 0 0 1px rgba(167,139,250,.3)}
+.btn-primary:hover{background:linear-gradient(135deg,#8b5cf6,#9f7aea);box-shadow:0 4px 20px rgba(124,58,237,.45)}
 .btn-secondary{background:var(--glass);backdrop-filter:blur(12px);color:var(--fg);border:1px solid var(--b3)}
 .btn-secondary:hover{background:var(--glass3);border-color:rgba(255,255,255,.18)}
 .btn-ghost{color:var(--fg2)}.btn-ghost:hover{color:var(--fg);background:var(--glass)}
@@ -71,7 +66,6 @@ a{color:inherit;text-decoration:none}
 .btn-discord{background:linear-gradient(135deg,#5865f2,#4752c4);color:#fff;box-shadow:0 2px 12px rgba(88,101,242,.3)}.btn-discord:hover{background:linear-gradient(135deg,#6b75f5,#5865f2)}
 .w-full{width:100%}
 
-/* Inputs */
 .input{width:100%;background:var(--bg3);border:1px solid var(--b3);border-radius:var(--r);padding:10px 14px;font-size:14px;color:var(--fg);transition:border-color .15s}
 .input::placeholder{color:var(--fg3)}.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
 .input-wrap{position:relative}.input-wrap .input{padding-right:42px}
@@ -108,11 +102,10 @@ a{color:inherit;text-decoration:none}
 .faq-chev{transition:transform .2s}.faq-chev.open{transform:rotate(180deg)}
 .faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}.faq-a.open{max-height:160px}
 .faq-a-inner{padding:0 18px 16px;font-size:13px;color:var(--fg2);line-height:1.6}
-
 .footer{padding:24px 20px;border-top:1px solid var(--b);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;max-width:700px;margin:0 auto;font-size:12px;color:var(--fg3)}
 
 /* Auth */
-.auth-page{display:flex;align-items:center;justify-content:center;padding:20px;min-height:100vh;background:radial-gradient(ellipse at center,rgba(124,58,237,.06),transparent 60%)}
+.auth-page{display:flex;align-items:center;justify-content:center;padding:20px;min-height:100vh;min-height:100dvh;background:radial-gradient(ellipse at center,rgba(124,58,237,.06),transparent 60%)}
 .auth-card{width:100%;max-width:400px;background:var(--glass);backdrop-filter:blur(24px);border:1px solid var(--b2);border-radius:var(--r4);padding:32px 24px;box-shadow:0 16px 48px rgba(0,0,0,.3)}
 .auth-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--fg2);margin-bottom:24px;cursor:pointer}.auth-back:hover{color:var(--fg)}
 .auth-logo{text-align:center;font-weight:800;font-size:22px;margin-bottom:4px}.auth-logo span{color:var(--accent)}
@@ -123,7 +116,7 @@ a{color:inherit;text-decoration:none}
 .auth-switch{text-align:center;font-size:13px;color:var(--fg2);margin-top:16px}.auth-switch button{color:var(--accent);font-weight:600;cursor:pointer}
 
 /* Dashboard */
-.dash{display:flex;height:100vh;overflow:hidden}
+.dash{display:flex;height:100vh;height:100dvh;overflow:hidden}
 .sidebar{width:var(--sidebar-w);background:var(--glass);backdrop-filter:blur(24px);border-right:1px solid var(--b);display:flex;flex-direction:column;flex-shrink:0;transition:transform .25s var(--ease);z-index:50}
 @media(max-width:768px){.sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);z-index:200}.sidebar.open{transform:translateX(0)}}
 .sidebar-head{height:var(--header-h);border-bottom:1px solid var(--b);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0}
@@ -149,6 +142,7 @@ a{color:inherit;text-decoration:none}
 .main-spacer{flex:1}
 .main-date{font-size:11px;color:var(--fg3)}
 
+/* Tabs - CRITICAL FIX */
 .tab{display:none;flex:1;flex-direction:column;overflow:hidden}.tab.active{display:flex}
 .tab-scroll{flex:1;overflow-y:auto;padding:20px}
 @media(max-width:768px){.tab-scroll{padding:14px}}
@@ -167,23 +161,26 @@ a{color:inherit;text-decoration:none}
 .card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg2);margin-bottom:14px}
 .row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:640px){.row-2{grid-template-columns:1fr}}
 
-/* Chat */
-.chat-wrap{display:flex;height:100%;overflow:hidden}
-.thread-panel{width:220px;background:var(--glass);backdrop-filter:blur(20px);border-right:1px solid var(--b);display:flex;flex-direction:column;flex-shrink:0}
+/* CHAT - FULL REDESIGN */
+#tab-chat{flex:1;display:none;flex-direction:column;overflow:hidden}
+#tab-chat.active{display:flex}
+.chat-wrap{display:flex;flex:1;overflow:hidden;min-height:0}
+.thread-panel{width:220px;background:var(--glass);backdrop-filter:blur(20px);border-right:1px solid var(--b);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
 @media(max-width:768px){.thread-panel{position:fixed;left:0;top:0;bottom:0;z-index:150;transform:translateX(-100%);transition:transform .25s var(--ease)}.thread-panel.open{transform:translateX(0)}}
-.thread-head{padding:12px;border-bottom:1px solid var(--b)}
+.thread-head{padding:12px;border-bottom:1px solid var(--b);flex-shrink:0}
 .thread-list{flex:1;overflow-y:auto;padding:8px}
 .thread-item{padding:10px;border-radius:var(--r);cursor:pointer;margin-bottom:2px;border:1px solid transparent;transition:all .15s}
 .thread-item:hover{background:var(--glass3);border-color:var(--b3)}
 .thread-item.active{background:var(--accent-glow);border-color:rgba(167,139,250,.2)}
 .thread-title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .thread-preview{font-size:10px;color:var(--fg3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
-.chat-main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--glass2);backdrop-filter:blur(12px)}
-.chat-head{height:48px;border-bottom:1px solid var(--b);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;background:var(--glass);backdrop-filter:blur(16px)}
+
+.chat-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--glass2);backdrop-filter:blur(12px)}
+.chat-head{height:48px;min-height:48px;border-bottom:1px solid var(--b);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;background:var(--glass);backdrop-filter:blur(16px)}
 .chat-menu-btn{display:none;width:32px;height:32px;border-radius:6px;border:1px solid var(--b3);align-items:center;justify-content:center;background:var(--glass2)}
 @media(max-width:768px){.chat-menu-btn{display:flex}}
 .chat-name{font-size:13px;font-weight:600}
-.messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+.messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;min-height:0}
 @media(max-width:768px){.messages{padding:14px;gap:12px}}
 .msg{display:flex;gap:10px;max-width:85%;animation:msgIn .2s var(--ease)}
 @media(min-width:768px){.msg{max-width:72%}}
@@ -217,15 +214,16 @@ a{color:inherit;text-decoration:none}
 .chip-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .chip{padding:8px 15px;border-radius:99px;border:1px solid var(--b3);font-size:12px;cursor:pointer;color:var(--fg2);transition:all .15s;background:var(--glass2);backdrop-filter:blur(8px)}.chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
 
-.chat-footer{padding:12px 14px;border-top:1px solid var(--b);background:var(--glass);backdrop-filter:blur(20px);flex-shrink:0}
+/* CHAT FOOTER */
+.chat-footer{padding:12px 14px;padding-bottom:max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--b);background:var(--glass);backdrop-filter:blur(20px);flex-shrink:0}
 .limit-banner{display:none;align-items:center;gap:6px;padding:8px 12px;border-radius:var(--r);background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);font-size:11px;color:var(--red);margin-bottom:10px;backdrop-filter:blur(8px)}.limit-banner.show{display:flex}
 .model-tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
 .model-tab{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--b3);color:var(--fg2);transition:all .15s;background:var(--glass2);backdrop-filter:blur(8px)}.model-tab.active{background:var(--accent-glow);border-color:rgba(167,139,250,.3);color:var(--accent)}.model-tab.done{opacity:.35;cursor:not-allowed}
 .input-row{display:flex;gap:8px;align-items:flex-end}
 .chat-input{flex:1;background:var(--bg3);border:1px solid var(--b3);border-radius:var(--r2);padding:10px 14px;font-size:14px;color:var(--fg);resize:none;max-height:100px;line-height:1.5;transition:border-color .15s;backdrop-filter:blur(8px)}
 .chat-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-.send-btn{width:38px;height:38px;border-radius:var(--r);background:linear-gradient(135deg,var(--accent2),#8b5cf6);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 12px rgba(124,58,237,.3)}.send-btn:hover{background:linear-gradient(135deg,#8b5cf6,#9f7aea);box-shadow:0 4px 20px rgba(124,58,237,.5);transform:scale(1.03)}.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}.send-btn svg{width:16px;height:16px;color:#fff}
-.file-btn{width:38px;height:38px;border-radius:var(--r);background:var(--glass2);backdrop-filter:blur(8px);border:1px solid var(--b3);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .15s}.file-btn:hover{background:var(--glass3);border-color:rgba(255,255,255,.2)}.file-btn svg{width:16px;height:16px;color:var(--fg2)}
+.send-btn{width:38px;height:38px;min-width:38px;border-radius:var(--r);background:linear-gradient(135deg,var(--accent2),#8b5cf6);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 12px rgba(124,58,237,.3)}.send-btn:hover{background:linear-gradient(135deg,#8b5cf6,#9f7aea);box-shadow:0 4px 20px rgba(124,58,237,.5);transform:scale(1.03)}.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}.send-btn svg{width:16px;height:16px;color:#fff}
+.file-btn{width:38px;height:38px;min-width:38px;border-radius:var(--r);background:var(--glass2);backdrop-filter:blur(8px);border:1px solid var(--b3);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .15s}.file-btn:hover{background:var(--glass3);border-color:rgba(255,255,255,.2)}.file-btn svg{width:16px;height:16px;color:var(--fg2)}
 .file-preview{display:none;align-items:center;gap:8px;padding:6px 10px;background:var(--glass);border:1px solid var(--b3);border-radius:var(--r);margin-bottom:8px;font-size:12px;color:var(--fg2)}.file-preview.show{display:flex}.file-preview .remove-file{cursor:pointer;color:var(--fg3);margin-left:auto}
 .usage-row{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--fg3)}.usage-dot{width:4px;height:4px;border-radius:50%;background:var(--accent)}
 
@@ -237,11 +235,7 @@ a{color:inherit;text-decoration:none}
 .setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--b)}.setting-row:last-child{border-bottom:none}
 .setting-info h4{font-size:13px;font-weight:600}.setting-info p{font-size:11px;color:var(--fg3);margin-top:2px}
 .danger-card{border-color:rgba(248,113,113,.2)}.danger-card:hover{border-color:rgba(248,113,113,.35)}.danger-card .setting-card-title{color:var(--red)}
-
-/* Overlays */
 .overlay{display:none;position:fixed;inset:0;z-index:149;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}.overlay.show{display:block}
-
-/* Discord banner */
 .discord-banner{background:linear-gradient(135deg,rgba(88,101,242,.3),rgba(71,82,196,.2));border:1px solid rgba(88,101,242,.3);border-radius:var(--r3);padding:20px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px;backdrop-filter:blur(12px)}
 .discord-banner svg{width:36px;height:36px;flex-shrink:0;color:#fff}
 .discord-info{flex:1;min-width:0}
@@ -299,11 +293,10 @@ a{color:inherit;text-decoration:none}
 
   <div class="faq-section" id="faq">
     <div class="faq-title">Common questions</div>
-    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">How do daily limits work?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a"><div class="faq-a-inner">Each model has its own daily cap of 180 messages. Resets at midnight UTC. Unused requests don't roll over.</div></div></div>
-    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Which model is best?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a"><div class="faq-a-inner">We use Groq's Llama 3.3 70B for fast, intelligent responses across coding, analysis, and creative tasks.</div></div></div>
-    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Is my data private?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a"><div class="faq-a-inner">Conversations are stored in your browser only. No server-side storage of your chat messages.</div></div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">How do daily limits work?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a"><div class="faq-a-inner">Each model has its own daily cap of 180 messages. Resets at midnight UTC.</div></div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Which model is best?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a"><div class="faq-a-inner">We use Groq's Llama 3.3 70B for fast, intelligent responses.</div></div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Is my data private?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a"><div class="faq-a-inner">Conversations are stored in your browser only. No server-side storage.</div></div></div>
   </div>
-
   <div class="footer"><span>&copy; 2026 kitty.devs.AI</span><span>Built for developers</span></div>
 </div>
 
@@ -317,7 +310,7 @@ a{color:inherit;text-decoration:none}
       <div class="auth-error" id="loginErr"></div>
       <div class="auth-form">
         <input class="input" id="loginId" placeholder="Username or email" autocomplete="username">
-        <div class="input-wrap"><input class="input" id="loginPw" type="password" placeholder="Password" autocomplete="current-password"><button class="eye-btn" onclick="togglePw('loginPw')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+        <div class="input-wrap"><input class="input" id="loginPw" type="password" placeholder="Password"><button class="eye-btn" onclick="togglePw('loginPw')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
         <button class="btn btn-primary w-full" onclick="doLogin()">Sign In</button>
       </div>
       <div class="auth-switch">New here? <button onclick="showPage('register')">Create account</button></div>
@@ -375,7 +368,7 @@ a{color:inherit;text-decoration:none}
       </div>
 
       <div class="tab active" id="tab-home"><div class="tab-scroll"><div id="homeContent"></div></div></div>
-      <div class="tab" id="tab-chat" style="height:calc(100vh - var(--header-h))"><div id="chatContent" class="chat-wrap"></div></div>
+      <div class="tab" id="tab-chat"><div id="chatContent" class="chat-wrap"></div></div>
       <div class="tab" id="tab-settings"><div class="tab-scroll"><div class="settings-stack" id="settingsContent"></div></div></div>
     </div>
   </div>
@@ -415,11 +408,11 @@ function renderChat(){const el=document.getElementById('chatContent');if(!el)ret
 <div class="chat-main"><div class="chat-head"><button class="chat-menu-btn" onclick="openThreadPanel()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button><span class="chat-name" id="chatTitle">Chat</span></div>
 <div class="messages" id="messages"></div>
 <div class="chat-footer">
-<div class="limit-banner" id="limitBanner">Daily limit reached</div>
+<div class="limit-banner" id="limitBanner"><span>🚫</span><span id="limitText">Daily limit reached</span></div>
 <div class="file-preview" id="filePreview"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span id="fileName"></span><span class="remove-file" onclick="removeFile()">✕</span></div>
 <div class="model-tabs" id="modelTabs"></div>
 <div class="input-row">
-<input type="file" id="fileInput" style="display:none" accept=".txt,.js,.py,.html,.css,.json,.md,.csv,.ts,.tsx,.jsx,.yaml,.yml,.xml,.sql,.sh,.bash,.zsh,.fish,.ps1,.bat,.cmd,.java,.c,.cpp,.h,.hpp,.rs,.go,.rb,.php,.swift,.kt,.scala,.r,.m,.mm,.pl,.pm,.lua,.vim,.toml,.ini,.cfg,.conf,.log" onchange="handleFile(event)">
+<input type="file" id="fileInput" style="display:none" accept=".txt,.js,.py,.html,.css,.json,.md,.csv,.ts,.tsx,.jsx,.yaml,.yml,.xml,.sql,.sh,.bash,.java,.c,.cpp,.h,.hpp,.rs,.go,.rb,.php,.swift,.kt,.scala,.r,.lua,.toml,.ini,.cfg,.conf,.log" onchange="handleFile(event)">
 <button class="file-btn" onclick="document.getElementById('fileInput').click()" title="Attach file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
 <textarea class="chat-input" id="chatTA" placeholder="Ask anything..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
 <button class="send-btn" id="sendBtn" onclick="sendMsg()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>

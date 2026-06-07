@@ -597,7 +597,7 @@ function buildCES(){const d=document.createElement('div');d.className='ces';d.in
 function buildMsg(m,idx){const d=document.createElement('div');d.className=`msg ${m.role}`;const av=m.role==='user'?(CU?.name?.[0]?.toUpperCase()||'U'):'🐱';d.innerHTML=`<div class="msgav">${av}</div><div class="msgbody"><div class="msgbub">${m.role==='ai'?parseMd(m.content):esc(m.content)}</div><div class="msgmeta"><span class="msgtime">${fTime(m.timestamp)}</span><button class="msgact" onclick="copyMsg(this,${idx})">Copy</button>${m.role==='ai'?`<button class="msgact" onclick="regenMsg(${idx})">↻ Retry</button>`:''}</div></div>`;return d}
 function sendSug(t){if(!aChat)newChat();document.getElementById('chatTA').value=t;sendMsg()}
 
-// ========== SEND MESSAGE - CALLS /api/chat ==========
+// ========== SEND MESSAGE - FIXED FOR YOUR CHAT.JS ==========
 async function sendMsg(){
   const ta=document.getElementById('chatTA'),text=ta.value.trim();
   if(!text||aiTyping)return;
@@ -627,15 +627,28 @@ async function sendMsg(){
 
   try {
     const hist=ch.messages.filter(m=>m.content!=='...').slice(-20).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
+    
+    // FIXED: Send model AND messages as chat.js expects
     const resp=await fetch('/api/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:hist})
+      body:JSON.stringify({
+        model: MODEL_MAP[model] || 'llama-3.3-70b-versatile',
+        messages: hist
+      })
     });
-    if(!resp.ok){const et=await resp.text();throw new Error(`Server error (${resp.status}): ${et}`)}
+    
+    if(!resp.ok){
+      const et=await resp.text();
+      throw new Error(`Server error (${resp.status}): ${et}`);
+    }
+    
     const data=await resp.json();
-    let txt=data?.choices?.[0]?.message?.content||data?.reply||data?.message||data?.text;
+    
+    // Extract reply from Groq response format
+    let txt=data?.choices?.[0]?.message?.content;
     if(!txt)txt='⚠ No response received.';
+    
     te.remove();
     const am={role:'ai',content:txt,timestamp:new Date().toISOString(),model};
     ch.messages.push(am);

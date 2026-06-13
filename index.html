@@ -30,7 +30,6 @@ body{
 input,textarea,button{font-family:inherit;border:none;outline:none}
 button{cursor:pointer;background:none;color:inherit}
 a{color:inherit;text-decoration:none}
-
 .glass{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .glass-light{background:var(--glass2);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 .glass-heavy{background:var(--glass3);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
@@ -141,8 +140,8 @@ a{color:inherit;text-decoration:none}
 .main-title{font-weight:700;font-size:14px;letter-spacing:-.01em}
 .main-spacer{flex:1}
 .main-date{font-size:11px;color:var(--fg3)}
+@media(max-width:480px){.main-date{display:none}}
 
-/* Tabs - CRITICAL FIX */
 .tab{display:none;flex:1;flex-direction:column;overflow:hidden}.tab.active{display:flex}
 .tab-scroll{flex:1;overflow-y:auto;padding:20px}
 @media(max-width:768px){.tab-scroll{padding:14px}}
@@ -161,7 +160,7 @@ a{color:inherit;text-decoration:none}
 .card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg2);margin-bottom:14px}
 .row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:640px){.row-2{grid-template-columns:1fr}}
 
-/* CHAT - FULL REDESIGN */
+/* CHAT */
 #tab-chat{flex:1;display:none;flex-direction:column;overflow:hidden}
 #tab-chat.active{display:flex}
 .chat-wrap{display:flex;flex:1;overflow:hidden;min-height:0}
@@ -177,55 +176,70 @@ a{color:inherit;text-decoration:none}
 
 .chat-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--glass2);backdrop-filter:blur(12px)}
 .chat-head{height:48px;min-height:48px;border-bottom:1px solid var(--b);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;background:var(--glass);backdrop-filter:blur(16px)}
-.chat-menu-btn{display:none;width:32px;height:32px;border-radius:6px;border:1px solid var(--b3);align-items:center;justify-content:center;background:var(--glass2)}
+.chat-menu-btn{display:none;width:32px;height:32px;border-radius:6px;border:1px solid var(--b3);align-items:center;justify-content:center;background:var(--glass2);flex-shrink:0}
 @media(max-width:768px){.chat-menu-btn{display:flex}}
-.chat-name{font-size:13px;font-weight:600}
-.messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;min-height:0}
-@media(max-width:768px){.messages{padding:14px;gap:12px}}
-.msg{display:flex;gap:10px;max-width:85%;animation:msgIn .2s var(--ease)}
-@media(min-width:768px){.msg{max-width:72%}}
-@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.chat-name{font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Mode Toggle */
+.mode-toggle{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.mode-pill{display:flex;background:var(--bg4);border:1px solid var(--b3);border-radius:99px;padding:2px;gap:2px}
+.mode-opt{padding:4px 10px;border-radius:99px;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;color:var(--fg3);letter-spacing:.03em;white-space:nowrap}
+.mode-opt.active{background:linear-gradient(135deg,var(--accent2),#8b5cf6);color:#fff;box-shadow:0 1px 6px rgba(124,58,237,.4)}
+.mode-opt:not(.active):hover{color:var(--fg);background:var(--glass3)}
+
+/* Messages */
+.messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;min-height:0;contain:layout style;will-change:scroll-position}
+@media(max-width:768px){.messages{padding:10px;gap:8px}}
+.msg{display:flex;gap:8px;max-width:88%;animation:msgIn .18s var(--ease) both;contain:layout style}
+@media(min-width:768px){.msg{max-width:74%}}
+@keyframes msgIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 .msg.user{flex-direction:row-reverse;align-self:flex-end}
-.msg-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
+.msg-av{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;margin-top:2px}
 .msg.user .msg-av{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;box-shadow:0 2px 8px rgba(124,58,237,.3)}
 .msg.ai .msg-av{background:var(--glass3);backdrop-filter:blur(8px);border:1px solid var(--b3);font-size:14px}
-.msg-body{min-width:0}
-.msg-bubble{padding:10px 14px;border-radius:var(--r2);font-size:13px;line-height:1.6}
+.msg-body{min-width:0;flex:1}
+.msg-bubble{padding:9px 13px;border-radius:var(--r2);font-size:13.5px;line-height:1.65;word-break:break-word}
 .msg.user .msg-bubble{background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(167,139,250,.15));border:1px solid rgba(167,139,250,.25);border-bottom-right-radius:4px;backdrop-filter:blur(8px)}
 .msg.ai .msg-bubble{background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--b2);border-bottom-left-radius:4px}
-.msg-bubble p{margin:0 0 6px}.msg-bubble p:last-child{margin:0}
+.msg-bubble p{margin:0 0 5px}.msg-bubble p:last-child{margin:0}
 .msg-bubble code{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(0,0,0,.3);padding:2px 5px;border-radius:4px;color:var(--accent)}
-.msg-bubble pre{background:rgba(0,0,0,.3);border:1px solid var(--b3);border-radius:var(--r);padding:14px;overflow-x:auto;margin:8px 0;position:relative;backdrop-filter:blur(8px)}
-.msg-bubble pre code{background:none;padding:0;font-size:11px;color:var(--fg)}
-.copy-btn{position:absolute;top:6px;right:6px;background:var(--glass);border:1px solid var(--b3);border-radius:4px;padding:3px 7px;font-size:10px;color:var(--fg2);cursor:pointer}.copy-btn:hover{color:var(--fg);background:var(--bg4)}
-.msg-meta{display:flex;align-items:center;gap:8px;margin-top:5px;padding:0 2px}
+.msg-bubble pre{background:rgba(0,0,0,.35);border:1px solid var(--b3);border-radius:var(--r);padding:12px;overflow-x:auto;margin:8px 0;position:relative;backdrop-filter:blur(8px)}
+.msg-bubble pre code{background:none;padding:0;font-size:11.5px;color:var(--fg)}
+.copy-btn{position:absolute;top:6px;right:6px;background:var(--glass);border:1px solid var(--b3);border-radius:4px;padding:3px 7px;font-size:10px;color:var(--fg2);cursor:pointer;transition:all .1s}.copy-btn:hover{color:var(--fg);background:var(--bg4)}
+.msg-meta{display:flex;align-items:center;gap:6px;margin-top:4px;padding:0 2px}
 .msg-time{font-size:10px;color:var(--fg3)}
-.msg-action{font-size:10px;color:var(--fg3);cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid var(--b2);background:var(--glass2)}.msg-action:hover{color:var(--fg);border-color:var(--b3)}
-.typing{display:flex;gap:4px;padding:10px 14px}
+.msg-action{font-size:10px;color:var(--fg3);cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid var(--b2);background:var(--glass2);transition:all .1s}.msg-action:hover{color:var(--fg);border-color:var(--b3)}
+.typing{display:flex;gap:4px;padding:9px 13px;align-items:center}
 .typing span{width:5px;height:5px;border-radius:50%;background:var(--fg3);animation:bounce 1.2s infinite}
 .typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
 @keyframes bounce{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
 
-.empty-chat{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;gap:16px}
-.empty-icon{width:72px;height:72px;background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--b2);border-radius:var(--r3);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,.3)}
-.empty-icon svg{width:32px;height:32px;color:var(--accent)}
-.empty-title{font-weight:800;font-size:18px;letter-spacing:-.02em}
-.empty-sub{font-size:13px;color:var(--fg2);max-width:340px}
-.chip-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
-.chip{padding:8px 15px;border-radius:99px;border:1px solid var(--b3);font-size:12px;cursor:pointer;color:var(--fg2);transition:all .15s;background:var(--glass2);backdrop-filter:blur(8px)}.chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+/* Streaming cursor */
+.stream-cursor{display:inline-block;width:2px;height:14px;background:var(--accent);border-radius:1px;animation:blink .8s step-end infinite;margin-left:2px;vertical-align:middle}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
-/* CHAT FOOTER */
-.chat-footer{padding:12px 14px;padding-bottom:max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--b);background:var(--glass);backdrop-filter:blur(20px);flex-shrink:0}
-.limit-banner{display:none;align-items:center;gap:6px;padding:8px 12px;border-radius:var(--r);background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);font-size:11px;color:var(--red);margin-bottom:10px;backdrop-filter:blur(8px)}.limit-banner.show{display:flex}
-.model-tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.empty-chat{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 16px;gap:14px}
+.empty-icon{width:64px;height:64px;background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--b2);border-radius:var(--r3);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.empty-icon svg{width:28px;height:28px;color:var(--accent)}
+.empty-title{font-weight:800;font-size:17px;letter-spacing:-.02em}
+.empty-sub{font-size:13px;color:var(--fg2);max-width:320px;line-height:1.5}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.chip{padding:7px 14px;border-radius:99px;border:1px solid var(--b3);font-size:12px;cursor:pointer;color:var(--fg2);transition:all .15s;background:var(--glass2);backdrop-filter:blur(8px)}.chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+
+/* Chat Footer */
+.chat-footer{padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--b);background:var(--glass);backdrop-filter:blur(20px);flex-shrink:0}
+.limit-banner{display:none;align-items:center;gap:6px;padding:7px 12px;border-radius:var(--r);background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);font-size:11px;color:var(--red);margin-bottom:8px;backdrop-filter:blur(8px)}.limit-banner.show{display:flex}
+.model-tabs{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
 .model-tab{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--b3);color:var(--fg2);transition:all .15s;background:var(--glass2);backdrop-filter:blur(8px)}.model-tab.active{background:var(--accent-glow);border-color:rgba(167,139,250,.3);color:var(--accent)}.model-tab.done{opacity:.35;cursor:not-allowed}
-.input-row{display:flex;gap:8px;align-items:flex-end}
-.chat-input{flex:1;background:var(--bg3);border:1px solid var(--b3);border-radius:var(--r2);padding:10px 14px;font-size:14px;color:var(--fg);resize:none;max-height:100px;line-height:1.5;transition:border-color .15s;backdrop-filter:blur(8px)}
+.input-row{display:flex;gap:6px;align-items:flex-end}
+.chat-input{flex:1;background:var(--bg3);border:1px solid var(--b3);border-radius:var(--r2);padding:9px 13px;font-size:14px;color:var(--fg);resize:none;max-height:100px;line-height:1.5;transition:border-color .15s;backdrop-filter:blur(8px)}
 .chat-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-.send-btn{width:38px;height:38px;min-width:38px;border-radius:var(--r);background:linear-gradient(135deg,var(--accent2),#8b5cf6);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 12px rgba(124,58,237,.3)}.send-btn:hover{background:linear-gradient(135deg,#8b5cf6,#9f7aea);box-shadow:0 4px 20px rgba(124,58,237,.5);transform:scale(1.03)}.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}.send-btn svg{width:16px;height:16px;color:#fff}
-.file-btn{width:38px;height:38px;min-width:38px;border-radius:var(--r);background:var(--glass2);backdrop-filter:blur(8px);border:1px solid var(--b3);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .15s}.file-btn:hover{background:var(--glass3);border-color:rgba(255,255,255,.2)}.file-btn svg{width:16px;height:16px;color:var(--fg2)}
-.file-preview{display:none;align-items:center;gap:8px;padding:6px 10px;background:var(--glass);border:1px solid var(--b3);border-radius:var(--r);margin-bottom:8px;font-size:12px;color:var(--fg2)}.file-preview.show{display:flex}.file-preview .remove-file{cursor:pointer;color:var(--fg3);margin-left:auto}
-.usage-row{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--fg3)}.usage-dot{width:4px;height:4px;border-radius:50%;background:var(--accent)}
+.chat-input::placeholder{color:var(--fg3)}
+.send-btn{width:36px;height:36px;min-width:36px;border-radius:var(--r);background:linear-gradient(135deg,var(--accent2),#8b5cf6);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 12px rgba(124,58,237,.3)}.send-btn:hover{background:linear-gradient(135deg,#8b5cf6,#9f7aea);box-shadow:0 4px 20px rgba(124,58,237,.5);transform:scale(1.04)}.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}.send-btn svg{width:15px;height:15px;color:#fff}
+.file-btn{width:36px;height:36px;min-width:36px;border-radius:var(--r);background:var(--glass2);backdrop-filter:blur(8px);border:1px solid var(--b3);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .15s}.file-btn:hover{background:var(--glass3);border-color:rgba(255,255,255,.2)}.file-btn svg{width:15px;height:15px;color:var(--fg2)}
+.file-preview{display:none;align-items:center;gap:8px;padding:5px 10px;background:var(--glass);border:1px solid var(--b3);border-radius:var(--r);margin-bottom:7px;font-size:12px;color:var(--fg2)}.file-preview.show{display:flex}.file-preview .remove-file{cursor:pointer;color:var(--fg3);margin-left:auto}
+.usage-row{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:var(--fg3)}.usage-dot{width:4px;height:4px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.mode-badge{font-size:10px;color:var(--accent);background:var(--accent-glow);border:1px solid rgba(167,139,250,.2);border-radius:99px;padding:1px 7px;font-weight:600;margin-left:auto;flex-shrink:0}
 
 /* Settings */
 .settings-stack{max-width:640px;display:flex;flex-direction:column;gap:14px}
@@ -240,6 +254,13 @@ a{color:inherit;text-decoration:none}
 .discord-banner svg{width:36px;height:36px;flex-shrink:0;color:#fff}
 .discord-info{flex:1;min-width:0}
 .discord-info h3{font-size:15px;font-weight:700;color:#fff}.discord-info p{font-size:12px;color:rgba(255,255,255,.65);margin-top:2px}
+
+/* Toggle switch */
+.toggle-wrap{display:flex;align-items:center;gap:8px;cursor:pointer}
+.toggle{width:36px;height:20px;background:var(--bg5);border-radius:99px;position:relative;transition:background .2s;flex-shrink:0;border:1px solid var(--b3)}
+.toggle.on{background:var(--accent2);border-color:var(--accent)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle.on::after{transform:translateX(16px)}
 </style>
 </head>
 <body>
@@ -270,13 +291,9 @@ a{color:inherit;text-decoration:none}
       <button class="btn btn-primary btn-sm" onclick="showPage('register')">Get Started</button>
     </div>
   </nav>
-
   <section class="hero">
     <div class="hero-glow"></div><div class="hero-glow"></div><div class="hero-glow"></div>
-    <div class="hero-badge">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-      AI-Powered Developer Tools
-    </div>
+    <div class="hero-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>AI-Powered Developer Tools</div>
     <h1>Build with <span>intelligence</span></h1>
     <p>Multi-model AI conversations, beautiful interface, zero cost. Built for developers who move fast.</p>
     <div class="hero-btns">
@@ -290,12 +307,12 @@ a{color:inherit;text-decoration:none}
       <div class="stat"><div class="stat-n">99.9%</div><div class="stat-l">Uptime</div></div>
     </div>
   </section>
-
   <div class="faq-section" id="faq">
     <div class="faq-title">Common questions</div>
     <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">How do daily limits work?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a"><div class="faq-a-inner">Each model has its own daily cap of 180 messages. Resets at midnight UTC.</div></div></div>
     <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Which model is best?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a"><div class="faq-a-inner">We use Groq's Llama 3.3 70B for fast, intelligent responses.</div></div></div>
     <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Is my data private?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a"><div class="faq-a-inner">Conversations are stored in your browser only. No server-side storage.</div></div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">What is Detailed Mode?<svg class="faq-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a"><div class="faq-a-inner">By default, AI gives short, direct answers. Enable Detailed Mode in the chat header for longer, more thorough explanations when you need them.</div></div></div>
   </div>
   <div class="footer"><span>&copy; 2026 kitty.devs.AI</span><span>Built for developers</span></div>
 </div>
@@ -375,82 +392,618 @@ a{color:inherit;text-decoration:none}
 </div>
 
 <script>
-const MODEL_MAP={'kitty.ai':'llama-3.3-70b-versatile'};
-const LIMITS={'kitty.ai':180};
-let CU=null,chats={},aChat=null,typing=false,cPage='landing',cTab='home',pendingFile=null;
-const S={get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),del:k=>localStorage.removeItem(k)};
-async function hashPw(p){const e=new TextEncoder().encode('kd3:'+p);const b=await crypto.subtle.digest('SHA-256',e);return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
-async function verifyPw(p,h){return(await hashPw(p))===h}
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function fDate(iso){if(!iso)return'—';return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
-function fTime(iso){if(!iso)return'';return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}
-function tSince(iso){if(!iso)return'';const s=Math.floor((Date.now()-new Date(iso))/1000);if(s<60)return'just now';if(s<3600)return Math.floor(s/60)+'m';if(s<86400)return Math.floor(s/3600)+'h';return Math.floor(s/86400)+'d'}
-function notify(msg,type='info'){const icons={success:'✓',error:'✕',info:'i'};const el=document.createElement('div');el.className=`notif ${type}`;el.innerHTML=`<span class="notif-icon">${icons[type]}</span><span>${esc(msg)}</span><span class="notif-close" onclick="this.parentElement.remove()">✕</span>`;document.getElementById('notifs').appendChild(el);setTimeout(()=>{el.style.animation='slideIn .25s reverse forwards';setTimeout(()=>el.remove(),250)},3500)}
-window.addEventListener('load',()=>{setTimeout(()=>{const ls=document.getElementById('loading');if(ls){ls.style.opacity='0';setTimeout(()=>ls.remove(),400)}const s=S.get('kd_session');if(s){const u=S.get('kd_users')||{};if(u[s]){CU=u[s];showPage('dashboard');return}}showPage('landing')},1200)});
-function showPage(p){document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));const el=document.getElementById('page-'+p);if(el)el.classList.add('active');cPage=p;if(p==='dashboard')initDash();window.scrollTo(0,0)}
-async function doLogin(){const id=document.getElementById('loginId').value.trim(),pw=document.getElementById('loginPw').value,err=document.getElementById('loginErr');err.classList.remove('show');if(!id||!pw){err.textContent='Fill in all fields';err.classList.add('show');return}const u=S.get('kd_users')||{};const c=Object.values(u).filter(x=>x.username===id||x.email===id);let user=null;for(const x of c){if(await verifyPw(pw,x.password)){user=x;break}}if(!user){err.textContent='Invalid credentials';err.classList.add('show');return}if(user.banned){err.textContent='Account suspended';err.classList.add('show');return}user.lastLogin=new Date().toISOString();const u2=S.get('kd_users')||{};u2[user.username]=user;S.set('kd_users',u2);S.set('kd_session',user.username);CU=user;notify('Welcome back!','success');showPage('dashboard')}
-async function doRegister(){const un=document.getElementById('regUser').value.trim().toLowerCase(),nm=document.getElementById('regName').value.trim(),em=document.getElementById('regEmail').value.trim(),pw=document.getElementById('regPw').value,pw2=document.getElementById('regPw2').value,err=document.getElementById('regErr');err.classList.remove('show');if(!un||!em||!pw){err.textContent='All fields required';err.classList.add('show');return}if(un.length<3){err.textContent='Username min 3 characters';err.classList.add('show');return}if(pw.length<8){err.textContent='Password min 8 characters';err.classList.add('show');return}if(pw!==pw2){err.textContent='Passwords do not match';err.classList.add('show');return}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){err.textContent='Invalid email';err.classList.add('show');return}const u=S.get('kd_users')||{};if(u[un]){err.textContent='Username taken';err.classList.add('show');return}if(Object.values(u).find(x=>x.email===em)){err.textContent='Email registered';err.classList.add('show');return}const h=await hashPw(pw);const nu={username:un,name:nm||un,email:em,password:h,role:un==='admin'?'admin':'user',banned:false,createdAt:new Date().toISOString(),lastLogin:new Date().toISOString(),usage:{'kitty.ai':0},usageDate:new Date().toDateString()};u[un]=nu;S.set('kd_users',u);S.set('kd_session',un);CU=nu;notify('Account created!','success');showPage('dashboard')}
-function doLogout(){S.del('kd_session');CU=null;chats={};aChat=null;notify('Signed out','info');showPage('landing')}
-function refreshUser(){const u=S.get('kd_users')||{};if(CU&&u[CU.username])CU=u[CU.username]}
-function saveUser(){const u=S.get('kd_users')||{};u[CU.username]=CU;S.set('kd_users',u)}
-function resetDaily(){const t=new Date().toDateString();if(CU.usageDate!==t){CU.usage={'kitty.ai':0};CU.usageDate=t;saveUser()}}
-function toggleSidebar(){const sb=document.getElementById('sidebar');sb.classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
-function closeAll(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');closeThreadPanel()}
-function initDash(){if(!CU)return;refreshUser();resetDaily();document.getElementById('sbName').textContent=CU.name||CU.username;document.getElementById('sbRole').textContent=CU.role;document.getElementById('sbAv').textContent=(CU.name||CU.username)[0].toUpperCase();document.getElementById('mainDate').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});chats=S.get('kd_chats_'+CU.username)||{};showTab('home')}
-function showTab(tab){cTab=tab;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));const te=document.getElementById('tab-'+tab);if(te)te.classList.add('active');const ne=document.getElementById('nav-'+tab);if(ne)ne.classList.add('active');const titles={home:'Dashboard',chat:'Chat',settings:'Settings'};document.getElementById('mainTitle').textContent=titles[tab]||'';if(tab==='home')renderHome();if(tab==='chat')renderChat();if(tab==='settings')renderSettings();closeAll()}
-function renderHome(){refreshUser();resetDaily();const u=CU,tot=u.usage['kitty.ai']||0,cap=180,cc=Object.keys(S.get('kd_chats_'+u.username)||{}).length;document.getElementById('homeContent').innerHTML=`
+// ─── Constants ───────────────────────────────────────────────────────────────
+const MODEL_MAP = {'kitty.ai':'llama-3.3-70b-versatile'};
+const LIMITS = {'kitty.ai':180};
+
+// System prompts
+const SYSTEM_QUICK = `You are kitty.devs.AI. Answer directly and efficiently. Prioritize giving the answer immediately. Keep responses short unless the user requests more detail. Avoid filler, repetition, disclaimers, and lengthy explanations. Use simple language and focus only on what the user asked. Default to 1-3 sentences for simple questions. Use bullet points or short paragraphs when helpful. Only elaborate if the user explicitly asks.`;
+
+const SYSTEM_DETAILED = `You are kitty.devs.AI. The user has enabled Detailed Mode. Provide thorough, comprehensive explanations. Include context, examples, edge cases, and step-by-step breakdowns where helpful. Use clear structure with headings, bullet points, and code blocks as appropriate. Be complete but remain focused on what the user asked.`;
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let CU = null, chats = {}, aChat = null, typing = false, cPage = 'landing', cTab = 'home', pendingFile = null;
+let detailedMode = false;
+
+// ─── Storage helpers ──────────────────────────────────────────────────────────
+const S = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } },
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+  del: k => localStorage.removeItem(k)
+};
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+async function hashPw(p) {
+  const e = new TextEncoder().encode('kd3:' + p);
+  const b = await crypto.subtle.digest('SHA-256', e);
+  return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,'0')).join('');
+}
+async function verifyPw(p, h) { return (await hashPw(p)) === h; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fDate(iso) { if (!iso) return '—'; return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function fTime(iso) { if (!iso) return ''; return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }
+
+function notify(msg, type='info') {
+  const icons = {success:'✓',error:'✕',info:'i'};
+  const el = document.createElement('div');
+  el.className = `notif ${type}`;
+  el.innerHTML = `<span class="notif-icon">${icons[type]}</span><span>${esc(msg)}</span><span class="notif-close" onclick="this.parentElement.remove()">✕</span>`;
+  document.getElementById('notifs').appendChild(el);
+  setTimeout(() => { el.style.animation = 'slideIn .25s reverse forwards'; setTimeout(() => el.remove(), 250); }, 3500);
+}
+
+// ─── Boot ────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const ls = document.getElementById('loading');
+    if (ls) { ls.style.opacity = '0'; setTimeout(() => ls.remove(), 400); }
+    const s = S.get('kd_session');
+    if (s) { const u = S.get('kd_users') || {}; if (u[s]) { CU = u[s]; showPage('dashboard'); return; } }
+    showPage('landing');
+  }, 1200);
+});
+
+// ─── Navigation ──────────────────────────────────────────────────────────────
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
+  const el = document.getElementById('page-' + p);
+  if (el) el.classList.add('active');
+  cPage = p;
+  if (p === 'dashboard') initDash();
+  window.scrollTo(0, 0);
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const id = document.getElementById('loginId').value.trim();
+  const pw = document.getElementById('loginPw').value;
+  const err = document.getElementById('loginErr');
+  err.classList.remove('show');
+  if (!id || !pw) { err.textContent = 'Fill in all fields'; err.classList.add('show'); return; }
+  const u = S.get('kd_users') || {};
+  const c = Object.values(u).filter(x => x.username === id || x.email === id);
+  let user = null;
+  for (const x of c) { if (await verifyPw(pw, x.password)) { user = x; break; } }
+  if (!user) { err.textContent = 'Invalid credentials'; err.classList.add('show'); return; }
+  if (user.banned) { err.textContent = 'Account suspended'; err.classList.add('show'); return; }
+  user.lastLogin = new Date().toISOString();
+  const u2 = S.get('kd_users') || {}; u2[user.username] = user; S.set('kd_users', u2);
+  S.set('kd_session', user.username);
+  CU = user; notify('Welcome back!', 'success'); showPage('dashboard');
+}
+
+async function doRegister() {
+  const un = document.getElementById('regUser').value.trim().toLowerCase();
+  const nm = document.getElementById('regName').value.trim();
+  const em = document.getElementById('regEmail').value.trim();
+  const pw = document.getElementById('regPw').value;
+  const pw2 = document.getElementById('regPw2').value;
+  const err = document.getElementById('regErr');
+  err.classList.remove('show');
+  if (!un || !em || !pw) { err.textContent = 'All fields required'; err.classList.add('show'); return; }
+  if (un.length < 3) { err.textContent = 'Username min 3 characters'; err.classList.add('show'); return; }
+  if (pw.length < 8) { err.textContent = 'Password min 8 characters'; err.classList.add('show'); return; }
+  if (pw !== pw2) { err.textContent = 'Passwords do not match'; err.classList.add('show'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { err.textContent = 'Invalid email'; err.classList.add('show'); return; }
+  const u = S.get('kd_users') || {};
+  if (u[un]) { err.textContent = 'Username taken'; err.classList.add('show'); return; }
+  if (Object.values(u).find(x => x.email === em)) { err.textContent = 'Email registered'; err.classList.add('show'); return; }
+  const h = await hashPw(pw);
+  const nu = {username:un,name:nm||un,email:em,password:h,role:un==='admin'?'admin':'user',banned:false,createdAt:new Date().toISOString(),lastLogin:new Date().toISOString(),usage:{'kitty.ai':0},usageDate:new Date().toDateString()};
+  u[un] = nu; S.set('kd_users', u); S.set('kd_session', un); CU = nu;
+  notify('Account created!', 'success'); showPage('dashboard');
+}
+
+function doLogout() { S.del('kd_session'); CU = null; chats = {}; aChat = null; notify('Signed out', 'info'); showPage('landing'); }
+function refreshUser() { const u = S.get('kd_users') || {}; if (CU && u[CU.username]) CU = u[CU.username]; }
+function saveUser() { const u = S.get('kd_users') || {}; u[CU.username] = CU; S.set('kd_users', u); }
+function resetDaily() { const t = new Date().toDateString(); if (CU.usageDate !== t) { CU.usage = {'kitty.ai':0}; CU.usageDate = t; saveUser(); } }
+
+// ─── Layout ───────────────────────────────────────────────────────────────────
+function toggleSidebar() { const sb = document.getElementById('sidebar'); sb.classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
+function closeAll() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); closeThreadPanel(); }
+
+// ─── Dashboard init ───────────────────────────────────────────────────────────
+function initDash() {
+  if (!CU) return;
+  refreshUser(); resetDaily();
+  document.getElementById('sbName').textContent = CU.name || CU.username;
+  document.getElementById('sbRole').textContent = CU.role;
+  document.getElementById('sbAv').textContent = (CU.name || CU.username)[0].toUpperCase();
+  document.getElementById('mainDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  chats = S.get('kd_chats_' + CU.username) || {};
+  // Load saved mode
+  detailedMode = S.get('kd_mode_' + CU.username) || false;
+  showTab('home');
+}
+
+function showTab(tab) {
+  cTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const te = document.getElementById('tab-' + tab); if (te) te.classList.add('active');
+  const ne = document.getElementById('nav-' + tab); if (ne) ne.classList.add('active');
+  const titles = {home:'Dashboard',chat:'Chat',settings:'Settings'};
+  document.getElementById('mainTitle').textContent = titles[tab] || '';
+  if (tab === 'home') renderHome();
+  if (tab === 'chat') renderChat();
+  if (tab === 'settings') renderSettings();
+  closeAll();
+}
+
+// ─── Home ─────────────────────────────────────────────────────────────────────
+function renderHome() {
+  refreshUser(); resetDaily();
+  const u = CU, tot = u.usage['kitty.ai'] || 0, cap = 180, cc = Object.keys(S.get('kd_chats_' + u.username) || {}).length;
+  document.getElementById('homeContent').innerHTML = `
 <div class="discord-banner"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg><div class="discord-info"><h3>Join our Discord</h3><p>Connect with developers, get support, and shape the future of kitty.devs.AI</p></div><a href="https://discord.gg/kitty-1377872412972154960" target="_blank" rel="noopener" class="btn btn-discord btn-sm" style="white-space:nowrap">Join Server</a></div>
-<div class="kpi-grid"><div class="kpi-card"><div class="kpi-label">Used Today</div><div class="kpi-val accent">${tot}</div><div class="kpi-bar"><div class="kpi-fill" style="width:${Math.min(100,tot/cap*100)}%"></div></div><div class="kpi-sub">${tot}/${cap}</div></div><div class="kpi-card"><div class="kpi-label">Remaining</div><div class="kpi-val">${cap-tot}</div><div class="kpi-sub">requests left</div></div><div class="kpi-card"><div class="kpi-label">Chats</div><div class="kpi-val">${cc}</div><div class="kpi-sub">saved</div></div><div class="kpi-card"><div class="kpi-label">Role</div><div class="kpi-val" style="font-size:22px">${u.role==='admin'?'Admin':'User'}</div><div class="kpi-sub">${u.role}</div></div></div>
-<div class="row-2"><div class="card"><div class="card-title">Account</div><div style="font-size:13px;display:flex;flex-direction:column;gap:6px"><div>@${esc(u.username)}</div><div style="color:var(--fg2)">${esc(u.email)}</div><div style="color:var(--fg3);font-size:11px">Since ${fDate(u.createdAt)}</div></div></div><div class="card"><div class="card-title">Reset Timer</div><div style="font-size:24px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--accent)" id="resetClock">--:--:--</div></div></div>`;startClock()}
-function startClock(){setInterval(()=>{const el=document.getElementById('resetClock');if(!el)return;const now=new Date(),mid=new Date();mid.setHours(24,0,0,0);const d=mid-now;el.textContent=`${String(Math.floor(d/3600000)).padStart(2,'0')}:${String(Math.floor((d%3600000)/60000)).padStart(2,'0')}:${String(Math.floor((d%60000)/1000)).padStart(2,'0')}`},1000)}
-function renderChat(){const el=document.getElementById('chatContent');if(!el)return;el.innerHTML=`
-<div class="thread-panel" id="threadPanel"><div class="thread-head"><button class="btn btn-primary btn-sm w-full" onclick="newChat()">New Chat</button></div><div class="thread-list" id="threadList"></div></div>
-<div class="chat-main"><div class="chat-head"><button class="chat-menu-btn" onclick="openThreadPanel()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button><span class="chat-name" id="chatTitle">Chat</span></div>
-<div class="messages" id="messages"></div>
-<div class="chat-footer">
-<div class="limit-banner" id="limitBanner"><span>🚫</span><span id="limitText">Daily limit reached</span></div>
-<div class="file-preview" id="filePreview"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span id="fileName"></span><span class="remove-file" onclick="removeFile()">✕</span></div>
-<div class="model-tabs" id="modelTabs"></div>
-<div class="input-row">
-<input type="file" id="fileInput" style="display:none" accept=".txt,.js,.py,.html,.css,.json,.md,.csv,.ts,.tsx,.jsx,.yaml,.yml,.xml,.sql,.sh,.bash,.java,.c,.cpp,.h,.hpp,.rs,.go,.rb,.php,.swift,.kt,.scala,.r,.lua,.toml,.ini,.cfg,.conf,.log" onchange="handleFile(event)">
-<button class="file-btn" onclick="document.getElementById('fileInput').click()" title="Attach file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
-<textarea class="chat-input" id="chatTA" placeholder="Ask anything..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
-<button class="send-btn" id="sendBtn" onclick="sendMsg()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
-</div><div class="usage-row"><span class="usage-dot"></span><span id="usageLabel">—</span></div></div></div>`;renderThreadList();renderMessages();updateUsage()}
-function handleFile(event){const file=event.target.files[0];if(!file)return;if(file.size>500000)return notify('File too large. Max 500KB','error');const reader=new FileReader();reader.onload=function(e){pendingFile={name:file.name,content:e.target.result};document.getElementById('filePreview').classList.add('show');document.getElementById('fileName').textContent=file.name};reader.readAsText(file)}
-function removeFile(){pendingFile=null;document.getElementById('fileInput').value='';document.getElementById('filePreview').classList.remove('show')}
-function renderThreadList(){const el=document.getElementById('threadList');if(!el)return;const s=Object.values(chats).sort((a,b)=>new Date(b.updatedAt||0)-new Date(a.updatedAt||0));el.innerHTML=s.length?s.map(c=>`<div class="thread-item ${c.id===aChat?'active':''}" onclick="selectChat('${c.id}')"><div class="thread-title">${esc(c.title)}</div><div class="thread-preview">${c.messages.length?esc(c.messages[c.messages.length-1]?.content?.slice(0,30)+'…'):'Empty'}</div></div>`).join(''):'<div style="padding:16px;text-align:center;font-size:12px;color:var(--fg3)">No chats yet</div>'}
-function renderMessages(){const el=document.getElementById('messages');if(!el)return;if(!aChat||!chats[aChat]){el.innerHTML=buildEmpty();return}const ch=chats[aChat];document.getElementById('chatTitle').textContent=ch.title;updateModelTabs();if(!ch.messages.length){el.innerHTML=buildEmpty();return}el.innerHTML=ch.messages.filter(m=>m.content!=='...').map((m,i)=>`<div class="msg ${m.role}"><div class="msg-av">${m.role==='user'?(CU?.name?.[0]||'U'):'AI'}</div><div class="msg-body"><div class="msg-bubble">${m.role==='ai'?parseMd(m.content):esc(m.content)}</div><div class="msg-meta"><span class="msg-time">${fTime(m.timestamp)}</span><button class="msg-action" onclick="copyMsg(${i})">Copy</button>${m.role==='ai'?`<button class="msg-action" onclick="regen(${i})">Retry</button>`:''}</div></div></div>`).join('');el.scrollTop=el.scrollHeight}
-function buildEmpty(){return`<div class="empty-chat"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div><div class="empty-title">Start a conversation</div><div class="empty-sub">Ask questions, get code help, brainstorm ideas. You can also attach files for analysis.</div><div class="chip-row"><button class="chip" onclick="sendSug('Explain async/await in JavaScript')">Async/await</button><button class="chip" onclick="sendSug('Write a Python binary search')">Binary search</button><button class="chip" onclick="sendSug('Brainstorm SaaS ideas')">SaaS ideas</button><button class="chip" onclick="sendSug('Draft a professional email')">Write email</button></div></div>`}
-function newChat(){const id='c'+Date.now();chats[id]={id,title:'New Chat',messages:[],model:'kitty.ai',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};aChat=id;saveChats();renderThreadList();renderMessages();updateUsage();if(cTab!=='chat')showTab('chat')}
-function selectChat(id){aChat=id;renderThreadList();renderMessages();updateUsage();closeThreadPanel()}
-function saveChats(){S.set('kd_chats_'+CU.username,chats)}
-function sendSug(t){if(!aChat)newChat();document.getElementById('chatTA').value=t;sendMsg()}
-function openThreadPanel(){document.getElementById('threadPanel').classList.add('open');document.getElementById('overlay').classList.add('show')}
-function closeThreadPanel(){const tp=document.getElementById('threadPanel');if(tp)tp.classList.remove('open');document.getElementById('overlay').classList.remove('show')}
-function updateModelTabs(){const el=document.getElementById('modelTabs');if(!el||!aChat||!chats[aChat])return;const cur=chats[aChat].model||'kitty.ai';el.innerHTML=Object.entries(LIMITS).map(([m,lim])=>{const used=CU?.usage[m]||0,exh=used>=lim;return`<button class="model-tab ${cur===m?'active':''} ${exh?'done':''}" onclick="setModel('${m}')">${m} ${exh?'(full)':''}</button>`}).join('')}
-function setModel(m){if(!aChat||!chats[aChat])return;chats[aChat].model=m;saveChats();updateModelTabs();updateUsage()}
-function updateUsage(){const el=document.getElementById('usageLabel');if(!el||!CU){if(el)el.textContent='—';return}refreshUser();resetDaily();const m=(aChat&&chats[aChat]?.model)||'kitty.ai',left=LIMITS[m]-(CU.usage[m]||0);el.textContent=`${m} · ${left} remaining today`;updateModelTabs();const banner=document.getElementById('limitBanner');if(banner)banner.classList.toggle('show',left<=0)}
-async function sendMsg(){const ta=document.getElementById('chatTA'),text=ta.value.trim();if(!text||typing)return;if(!aChat)newChat();refreshUser();resetDaily();const ch=chats[aChat],model=ch.model||'kitty.ai',used=CU.usage[model]||0,lim=LIMITS[model];if(used>=lim){notify('Daily limit reached','error');return}
-let fullText=text;if(pendingFile){fullText=`[File: ${pendingFile.name}]\n\`\`\`\n${pendingFile.content.slice(0,10000)}\n\`\`\`\n\n${text}`;removeFile()}
-ta.value='';ta.style.height='auto';const um={role:'user',content:fullText,timestamp:new Date().toISOString()};ch.messages.push(um);if(ch.title==='New Chat')ch.title=text.slice(0,40);ch.updatedAt=new Date().toISOString();saveChats();renderThreadList();renderMessages();typing=true;document.getElementById('sendBtn').disabled=true;const msgs=document.getElementById('messages'),tmp=document.createElement('div');tmp.className='msg ai';tmp.innerHTML=`<div class="msg-av">AI</div><div class="msg-body"><div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div></div>`;msgs.appendChild(tmp);msgs.scrollTop=msgs.scrollHeight;
-try{const hist=ch.messages.filter(m=>m.content!=='...').slice(-20).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:MODEL_MAP[model]||'llama-3.3-70b-versatile',messages:hist})});if(!r.ok)throw new Error(`Server error (${r.status})`);const d=await r.json();let txt=d?.choices?.[0]?.message?.content;if(!txt)txt='No response received';tmp.remove();const am={role:'ai',content:txt,timestamp:new Date().toISOString(),model};ch.messages.push(am);CU.usage[model]=(CU.usage[model]||0)+1;saveUser();saveChats();renderMessages();renderThreadList();updateUsage()}catch(e){tmp.remove();const em={role:'ai',content:`Error: ${e.message}`,timestamp:new Date().toISOString()};ch.messages.push(em);saveChats();renderMessages()}typing=false;document.getElementById('sendBtn').disabled=false}
-async function regen(idx){if(typing||!aChat)return;const ch=chats[aChat];ch.messages=ch.messages.slice(0,idx);saveChats();renderMessages();const lu=[...ch.messages].reverse().find(m=>m.role==='user');if(lu){document.getElementById('chatTA').value=lu.content;await sendMsg()}}
-function copyMsg(idx){const ch=chats[aChat];if(!ch)return;navigator.clipboard.writeText(ch.messages[idx]?.content||'').then(()=>notify('Copied!','success'))}
-function renderSettings(){document.getElementById('settingsContent').innerHTML=`
-<div class="setting-card"><div class="setting-card-title">Profile</div><div class="setting-form"><input class="input" id="setName" value="${esc(CU.name||'')}" placeholder="Display name"><input class="input" id="setEmail" value="${esc(CU.email)}" placeholder="Email"><button class="btn btn-primary btn-sm" onclick="saveProfile()" style="align-self:flex-start">Save</button></div></div>
-<div class="setting-card"><div class="setting-card-title">Password</div><div class="setting-form"><input class="input" id="setCurPw" type="password" placeholder="Current password"><input class="input" id="setNewPw" type="password" placeholder="New password"><input class="input" id="setNewPw2" type="password" placeholder="Confirm new password"><button class="btn btn-primary btn-sm" onclick="changePw()" style="align-self:flex-start">Update</button></div></div>
-<div class="setting-card"><div class="setting-card-title">Data</div><div class="setting-row"><div class="setting-info"><h4>Export chats</h4><p>Download as JSON</p></div><button class="btn btn-secondary btn-sm" onclick="exportChats()">Export</button></div><div class="setting-row"><div class="setting-info"><h4>Clear all chats</h4><p>Delete all conversations</p></div><button class="btn btn-secondary btn-sm" style="color:var(--red)" onclick="clearChats()">Clear</button></div></div>
-<div class="setting-card danger-card"><div class="setting-card-title">Danger zone</div><div class="setting-row"><div class="setting-info"><h4>Delete account</h4><p>Permanent and irreversible</p></div><button class="btn btn-secondary btn-sm" style="color:var(--red);border-color:rgba(248,113,113,.3)" onclick="deleteAcct()">Delete</button></div></div>`}
-function saveProfile(){const n=document.getElementById('setName').value.trim(),e=document.getElementById('setEmail').value.trim();if(!n||!e)return notify('Fill all fields','error');CU.name=n;CU.email=e;saveUser();document.getElementById('sbName').textContent=n;document.getElementById('sbAv').textContent=n[0].toUpperCase();notify('Saved!','success')}
-async function changePw(){const c=document.getElementById('setCurPw').value,n=document.getElementById('setNewPw').value,n2=document.getElementById('setNewPw2').value;if(!(await verifyPw(c,CU.password)))return notify('Wrong current password','error');if(n.length<8)return notify('Min 8 characters','error');if(n!==n2)return notify('Passwords do not match','error');CU.password=await hashPw(n);saveUser();notify('Password updated!','success');['setCurPw','setNewPw','setNewPw2'].forEach(id=>document.getElementById(id).value='')}
-function exportChats(){const d={user:CU.username,exportDate:new Date().toISOString(),chats};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`kittydevs-${CU.username}.json`;a.click();notify('Exported!','success')}
-function clearChats(){if(!confirm('Delete all chats?'))return;chats={};aChat=null;S.del('kd_chats_'+CU.username);notify('Chats cleared','info');renderChat()}
-function deleteAcct(){if(!confirm('Delete account permanently?'))return;const u=S.get('kd_users')||{};delete u[CU.username];S.set('kd_users',u);S.del('kd_session');S.del('kd_chats_'+CU.username);CU=null;notify('Account deleted','info');showPage('landing')}
-function toggleFaq(el){const a=el.nextElementSibling,ch=el.querySelector('.faq-chev');a.classList.toggle('open');ch.classList.toggle('open')}
-function togglePw(id){const el=document.getElementById(id);el.type=el.type==='password'?'text':'password'}
-function parseMd(raw){if(!raw)return'';let blocks=[],inlines=[];let text=raw.replace(/```(\w*)\n?([\s\S]*?)```/g,(_,lang,code)=>{const i=blocks.length;blocks.push(`<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>${esc(code.trim())}</code></pre>`);return`\x00B${i}\x00`});text=text.replace(/`([^\`\n]+)`/g,(_,c)=>{const i=inlines.length;inlines.push(`<code>${esc(c)}</code>`);return`\x00I${i}\x00`});text=esc(text);text=text.replace(/^### (.+)$/gm,'<h3 style="font-weight:700;margin:12px 0 6px">$1</h3>');text=text.replace(/^## (.+)$/gm,'<h2 style="font-weight:800;margin:14px 0 7px">$1</h2>');text=text.replace(/^# (.+)$/gm,'<h1 style="font-weight:900;margin:16px 0 8px">$1</h1>');text=text.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');text=text.replace(/\*([^*\n]+)\*/g,'<em>$1</em>');text=text.replace(/^[-*] (.+)$/gm,'<li style="margin-left:16px;margin-bottom:3px">$1</li>');text=text.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" style="color:var(--accent);text-decoration:underline">$1</a>');text=text.replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');text='<p>'+text+'</p>';inlines.forEach((h,i)=>{text=text.replace(`\x00I${i}\x00`,h)});blocks.forEach((h,i)=>{text=text.replace(`\x00B${i}\x00`,h)});return text}
-function copyCode(btn){navigator.clipboard.writeText(btn.nextElementSibling.textContent).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000)})}
+<div class="kpi-grid">
+  <div class="kpi-card"><div class="kpi-label">Used Today</div><div class="kpi-val accent">${tot}</div><div class="kpi-bar"><div class="kpi-fill" style="width:${Math.min(100,tot/cap*100)}%"></div></div><div class="kpi-sub">${tot}/${cap}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Remaining</div><div class="kpi-val">${cap-tot}</div><div class="kpi-sub">requests left</div></div>
+  <div class="kpi-card"><div class="kpi-label">Chats</div><div class="kpi-val">${cc}</div><div class="kpi-sub">saved</div></div>
+  <div class="kpi-card"><div class="kpi-label">Role</div><div class="kpi-val" style="font-size:22px">${u.role==='admin'?'Admin':'User'}</div><div class="kpi-sub">${u.role}</div></div>
+</div>
+<div class="row-2">
+  <div class="card"><div class="card-title">Account</div><div style="font-size:13px;display:flex;flex-direction:column;gap:6px"><div>@${esc(u.username)}</div><div style="color:var(--fg2)">${esc(u.email)}</div><div style="color:var(--fg3);font-size:11px">Since ${fDate(u.createdAt)}</div></div></div>
+  <div class="card"><div class="card-title">Reset Timer</div><div style="font-size:24px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--accent)" id="resetClock">--:--:--</div></div>
+</div>`;
+  startClock();
+}
+
+function startClock() {
+  setInterval(() => {
+    const el = document.getElementById('resetClock'); if (!el) return;
+    const now = new Date(), mid = new Date(); mid.setHours(24,0,0,0);
+    const d = mid - now;
+    el.textContent = `${String(Math.floor(d/3600000)).padStart(2,'0')}:${String(Math.floor((d%3600000)/60000)).padStart(2,'0')}:${String(Math.floor((d%60000)/1000)).padStart(2,'0')}`;
+  }, 1000);
+}
+
+// ─── Mode Toggle ──────────────────────────────────────────────────────────────
+function toggleMode() {
+  detailedMode = !detailedMode;
+  if (CU) S.set('kd_mode_' + CU.username, detailedMode);
+  const el = document.getElementById('modeToggle');
+  if (el) el.classList.toggle('on', detailedMode);
+  const labels = document.querySelectorAll('.mode-opt');
+  labels.forEach(l => l.classList.toggle('active', l.dataset.mode === (detailedMode ? 'detailed' : 'quick')));
+  updateUsage();
+  notify(detailedMode ? '📚 Detailed Mode on' : '⚡ Quick Answers on', 'info');
+}
+
+// ─── Chat render ──────────────────────────────────────────────────────────────
+function renderChat() {
+  const el = document.getElementById('chatContent');
+  if (!el) return;
+  el.innerHTML = `
+<div class="thread-panel" id="threadPanel">
+  <div class="thread-head"><button class="btn btn-primary btn-sm w-full" onclick="newChat()">New Chat</button></div>
+  <div class="thread-list" id="threadList"></div>
+</div>
+<div class="chat-main">
+  <div class="chat-head">
+    <button class="chat-menu-btn" onclick="openThreadPanel()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <span class="chat-name" id="chatTitle">Chat</span>
+    <div class="mode-toggle" style="margin-left:auto">
+      <div class="mode-pill">
+        <button class="mode-opt active" data-mode="quick" onclick="if(detailedMode)toggleMode()">⚡ Quick</button>
+        <button class="mode-opt" data-mode="detailed" onclick="if(!detailedMode)toggleMode()">📚 Detailed</button>
+      </div>
+    </div>
+  </div>
+  <div class="messages" id="messages"></div>
+  <div class="chat-footer">
+    <div class="limit-banner" id="limitBanner"><span>🚫</span><span id="limitText">Daily limit reached</span></div>
+    <div class="file-preview" id="filePreview"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span id="fileName"></span><span class="remove-file" onclick="removeFile()">✕</span></div>
+    <div class="model-tabs" id="modelTabs"></div>
+    <div class="input-row">
+      <input type="file" id="fileInput" style="display:none" accept=".txt,.js,.py,.html,.css,.json,.md,.csv,.ts,.tsx,.jsx,.yaml,.yml,.xml,.sql,.sh,.bash,.java,.c,.cpp,.h,.hpp,.rs,.go,.rb,.php,.swift,.kt,.scala,.r,.lua,.toml,.ini,.cfg,.conf,.log" onchange="handleFile(event)">
+      <button class="file-btn" onclick="document.getElementById('fileInput').click()" title="Attach file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+      <textarea class="chat-input" id="chatTA" placeholder="Ask anything…" rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMsg()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+    <div class="usage-row"><span class="usage-dot"></span><span id="usageLabel">—</span><span class="mode-badge" id="modeBadge">⚡ Quick</span></div>
+  </div>
+</div>`;
+  // Restore mode state
+  const labels = document.querySelectorAll('.mode-opt');
+  labels.forEach(l => l.classList.toggle('active', l.dataset.mode === (detailedMode ? 'detailed' : 'quick')));
+  renderThreadList();
+  renderMessages();
+  updateUsage();
+}
+
+// ─── File handling ────────────────────────────────────────────────────────────
+function handleFile(event) {
+  const file = event.target.files[0]; if (!file) return;
+  if (file.size > 500000) return notify('File too large. Max 500KB', 'error');
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingFile = {name: file.name, content: e.target.result};
+    document.getElementById('filePreview').classList.add('show');
+    document.getElementById('fileName').textContent = file.name;
+  };
+  reader.readAsText(file);
+}
+function removeFile() { pendingFile = null; document.getElementById('fileInput').value = ''; document.getElementById('filePreview').classList.remove('show'); }
+
+// ─── Thread list ──────────────────────────────────────────────────────────────
+function renderThreadList() {
+  const el = document.getElementById('threadList'); if (!el) return;
+  const s = Object.values(chats).sort((a,b) => new Date(b.updatedAt||0) - new Date(a.updatedAt||0));
+  el.innerHTML = s.length ? s.map(c => `
+<div class="thread-item ${c.id===aChat?'active':''}" onclick="selectChat('${c.id}')">
+  <div class="thread-title">${esc(c.title)}</div>
+  <div class="thread-preview">${c.messages.length ? esc((c.messages[c.messages.length-1]?.content||'').slice(0,32)+'…') : 'Empty'}</div>
+</div>`).join('') : '<div style="padding:16px;text-align:center;font-size:12px;color:var(--fg3)">No chats yet</div>';
+}
+
+// ─── Messages render ──────────────────────────────────────────────────────────
+function renderMessages() {
+  const el = document.getElementById('messages'); if (!el) return;
+  if (!aChat || !chats[aChat]) { el.innerHTML = buildEmpty(); return; }
+  const ch = chats[aChat];
+  const titleEl = document.getElementById('chatTitle');
+  if (titleEl) titleEl.textContent = ch.title;
+  updateModelTabs();
+  if (!ch.messages.length) { el.innerHTML = buildEmpty(); return; }
+
+  // Use DocumentFragment for perf on large histories
+  const frag = document.createDocumentFragment();
+  ch.messages.filter(m => m.content !== '...').forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = `msg ${m.role}`;
+    div.innerHTML = `<div class="msg-av">${m.role==='user'?(CU?.name?.[0]||'U'):'🐱'}</div>
+<div class="msg-body">
+  <div class="msg-bubble">${m.role==='ai' ? parseMd(m.content) : esc(m.content)}</div>
+  <div class="msg-meta">
+    <span class="msg-time">${fTime(m.timestamp)}</span>
+    <button class="msg-action" onclick="copyMsg(${i})">Copy</button>
+    ${m.role==='ai' ? `<button class="msg-action" onclick="regen(${i})">Retry</button>` : ''}
+  </div>
+</div>`;
+    frag.appendChild(div);
+  });
+  el.innerHTML = '';
+  el.appendChild(frag);
+  el.scrollTop = el.scrollHeight;
+}
+
+function buildEmpty() {
+  return `<div class="empty-chat">
+<div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+<div class="empty-title">Start a conversation</div>
+<div class="empty-sub">Ask anything. Attach files for analysis. Toggle Detailed Mode for deeper explanations.</div>
+<div class="chip-row">
+  <button class="chip" onclick="sendSug('Explain async/await in JavaScript')">Async/await</button>
+  <button class="chip" onclick="sendSug('Write a Python binary search')">Binary search</button>
+  <button class="chip" onclick="sendSug('Brainstorm SaaS ideas')">SaaS ideas</button>
+  <button class="chip" onclick="sendSug('Draft a professional email')">Write email</button>
+</div></div>`;
+}
+
+// ─── Chat actions ──────────────────────────────────────────────────────────────
+function newChat() {
+  const id = 'c' + Date.now();
+  chats[id] = {id, title:'New Chat', messages:[], model:'kitty.ai', createdAt:new Date().toISOString(), updatedAt:new Date().toISOString()};
+  aChat = id; saveChats(); renderThreadList(); renderMessages(); updateUsage();
+  if (cTab !== 'chat') showTab('chat');
+  setTimeout(() => { const ta = document.getElementById('chatTA'); if (ta) ta.focus(); }, 100);
+}
+
+function selectChat(id) { aChat = id; renderThreadList(); renderMessages(); updateUsage(); closeThreadPanel(); }
+function saveChats() { S.set('kd_chats_' + CU.username, chats); }
+function sendSug(t) { if (!aChat) newChat(); document.getElementById('chatTA').value = t; sendMsg(); }
+
+function openThreadPanel() { document.getElementById('threadPanel').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+function closeThreadPanel() { const tp = document.getElementById('threadPanel'); if (tp) tp.classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+
+function updateModelTabs() {
+  const el = document.getElementById('modelTabs'); if (!el || !aChat || !chats[aChat]) return;
+  const cur = chats[aChat].model || 'kitty.ai';
+  el.innerHTML = Object.entries(LIMITS).map(([m, lim]) => {
+    const used = CU?.usage[m] || 0, exh = used >= lim;
+    return `<button class="model-tab ${cur===m?'active':''} ${exh?'done':''}" onclick="setModel('${m}')">${m}${exh?' (full)':''}</button>`;
+  }).join('');
+}
+
+function setModel(m) { if (!aChat || !chats[aChat]) return; chats[aChat].model = m; saveChats(); updateModelTabs(); updateUsage(); }
+
+function updateUsage() {
+  const el = document.getElementById('usageLabel'); if (!el || !CU) { if (el) el.textContent = '—'; return; }
+  refreshUser(); resetDaily();
+  const m = (aChat && chats[aChat]?.model) || 'kitty.ai';
+  const left = LIMITS[m] - (CU.usage[m] || 0);
+  el.textContent = `${m} · ${left} remaining`;
+  updateModelTabs();
+  const banner = document.getElementById('limitBanner'); if (banner) banner.classList.toggle('show', left <= 0);
+  const badge = document.getElementById('modeBadge');
+  if (badge) badge.textContent = detailedMode ? '📚 Detailed' : '⚡ Quick';
+}
+
+// ─── Send message with streaming ──────────────────────────────────────────────
+async function sendMsg() {
+  const ta = document.getElementById('chatTA');
+  const text = ta.value.trim();
+  if (!text || typing) return;
+  if (!aChat) newChat();
+
+  refreshUser(); resetDaily();
+  const ch = chats[aChat];
+  const model = ch.model || 'kitty.ai';
+  const used = CU.usage[model] || 0;
+  const lim = LIMITS[model];
+  if (used >= lim) { notify('Daily limit reached', 'error'); return; }
+
+  let fullText = text;
+  if (pendingFile) {
+    fullText = `[File: ${pendingFile.name}]\n\`\`\`\n${pendingFile.content.slice(0,10000)}\n\`\`\`\n\n${text}`;
+    removeFile();
+  }
+
+  ta.value = ''; ta.style.height = 'auto';
+  const um = {role:'user', content:fullText, timestamp:new Date().toISOString()};
+  ch.messages.push(um);
+  if (ch.title === 'New Chat') ch.title = text.slice(0, 40);
+  ch.updatedAt = new Date().toISOString();
+  saveChats(); renderThreadList();
+
+  typing = true;
+  document.getElementById('sendBtn').disabled = true;
+
+  // Render user message immediately (fast perceived response)
+  renderMessages();
+
+  // Add typing indicator
+  const msgs = document.getElementById('messages');
+  const tmp = document.createElement('div');
+  tmp.className = 'msg ai';
+  tmp.id = 'typing-indicator';
+  tmp.innerHTML = `<div class="msg-av">🐱</div><div class="msg-body"><div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
+  msgs.appendChild(tmp);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const hist = ch.messages.filter(m => m.content !== '...').slice(-20).map(m => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.content
+    }));
+
+    const systemPrompt = detailedMode ? SYSTEM_DETAILED : SYSTEM_QUICK;
+
+    // Try streaming first, fall back to non-streaming
+    let responseText = '';
+    let didStream = false;
+
+    try {
+      const r = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model: MODEL_MAP[model] || 'llama-3.3-70b-versatile',
+          messages: hist,
+          system: systemPrompt,
+          stream: true
+        })
+      });
+
+      if (r.ok && r.headers.get('content-type')?.includes('text/event-stream')) {
+        // Streaming response
+        didStream = true;
+        tmp.remove();
+
+        // Create streaming bubble
+        const streamDiv = document.createElement('div');
+        streamDiv.className = 'msg ai';
+        streamDiv.innerHTML = `<div class="msg-av">🐱</div><div class="msg-body"><div class="msg-bubble" id="stream-bubble"><span class="stream-cursor"></span></div></div>`;
+        msgs.appendChild(streamDiv);
+
+        const bubble = document.getElementById('stream-bubble');
+        const reader = r.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const {done, value} = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, {stream: true});
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') break;
+            try {
+              const j = JSON.parse(data);
+              const delta = j.choices?.[0]?.delta?.content || '';
+              if (delta) {
+                responseText += delta;
+                bubble.innerHTML = parseMd(responseText) + '<span class="stream-cursor"></span>';
+                msgs.scrollTop = msgs.scrollHeight;
+              }
+            } catch {}
+          }
+        }
+
+        // Remove cursor
+        bubble.innerHTML = parseMd(responseText);
+        msgs.scrollTop = msgs.scrollHeight;
+      }
+    } catch (streamErr) {
+      // Streaming failed, will fall through to non-streaming
+    }
+
+    if (!didStream) {
+      // Non-streaming fallback
+      tmp.remove();
+      const r = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model: MODEL_MAP[model] || 'llama-3.3-70b-versatile',
+          messages: hist,
+          system: systemPrompt
+        })
+      });
+      if (!r.ok) throw new Error(`Server error (${r.status})`);
+      const d = await r.json();
+      responseText = d?.choices?.[0]?.message?.content || 'No response received';
+    }
+
+    // Save AI message
+    const am = {role:'ai', content:responseText, timestamp:new Date().toISOString(), model};
+    ch.messages.push(am);
+    CU.usage[model] = (CU.usage[model] || 0) + 1;
+    saveUser(); saveChats();
+    renderMessages(); renderThreadList(); updateUsage();
+
+  } catch (e) {
+    const indicator = document.getElementById('typing-indicator');
+    if (indicator) indicator.remove();
+    const em = {role:'ai', content:`Error: ${e.message}`, timestamp:new Date().toISOString()};
+    ch.messages.push(em);
+    saveChats(); renderMessages();
+  }
+
+  typing = false;
+  document.getElementById('sendBtn').disabled = false;
+  setTimeout(() => { const ta2 = document.getElementById('chatTA'); if (ta2) ta2.focus(); }, 50);
+}
+
+async function regen(idx) {
+  if (typing || !aChat) return;
+  const ch = chats[aChat];
+  ch.messages = ch.messages.slice(0, idx);
+  saveChats(); renderMessages();
+  const lu = [...ch.messages].reverse().find(m => m.role === 'user');
+  if (lu) { document.getElementById('chatTA').value = lu.content; await sendMsg(); }
+}
+
+function copyMsg(idx) {
+  const ch = chats[aChat]; if (!ch) return;
+  navigator.clipboard.writeText(ch.messages[idx]?.content || '').then(() => notify('Copied!', 'success'));
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+function renderSettings() {
+  document.getElementById('settingsContent').innerHTML = `
+<div class="setting-card">
+  <div class="setting-card-title">Profile</div>
+  <div class="setting-form">
+    <input class="input" id="setName" value="${esc(CU.name||'')}" placeholder="Display name">
+    <input class="input" id="setEmail" value="${esc(CU.email)}" placeholder="Email">
+    <button class="btn btn-primary btn-sm" onclick="saveProfile()" style="align-self:flex-start">Save</button>
+  </div>
+</div>
+<div class="setting-card">
+  <div class="setting-card-title">Password</div>
+  <div class="setting-form">
+    <input class="input" id="setCurPw" type="password" placeholder="Current password">
+    <input class="input" id="setNewPw" type="password" placeholder="New password">
+    <input class="input" id="setNewPw2" type="password" placeholder="Confirm new password">
+    <button class="btn btn-primary btn-sm" onclick="changePw()" style="align-self:flex-start">Update</button>
+  </div>
+</div>
+<div class="setting-card">
+  <div class="setting-card-title">Chat Preferences</div>
+  <div class="setting-row">
+    <div class="setting-info"><h4>Response Mode</h4><p>${detailedMode ? 'Detailed Mode — longer, thorough explanations' : 'Quick Answers — short, direct responses'}</p></div>
+    <label class="toggle-wrap" onclick="toggleMode();renderSettings()">
+      <div class="toggle ${detailedMode?'on':''}" id="modeToggle"></div>
+      <span style="font-size:12px;color:var(--fg2)">${detailedMode ? 'Detailed' : 'Quick'}</span>
+    </label>
+  </div>
+</div>
+<div class="setting-card">
+  <div class="setting-card-title">Data</div>
+  <div class="setting-row"><div class="setting-info"><h4>Export chats</h4><p>Download as JSON</p></div><button class="btn btn-secondary btn-sm" onclick="exportChats()">Export</button></div>
+  <div class="setting-row"><div class="setting-info"><h4>Clear all chats</h4><p>Delete all conversations</p></div><button class="btn btn-secondary btn-sm" style="color:var(--red)" onclick="clearChats()">Clear</button></div>
+</div>
+<div class="setting-card danger-card">
+  <div class="setting-card-title">Danger zone</div>
+  <div class="setting-row"><div class="setting-info"><h4>Delete account</h4><p>Permanent and irreversible</p></div><button class="btn btn-secondary btn-sm" style="color:var(--red);border-color:rgba(248,113,113,.3)" onclick="deleteAcct()">Delete</button></div>
+</div>`;
+}
+
+function saveProfile() {
+  const n = document.getElementById('setName').value.trim(), e = document.getElementById('setEmail').value.trim();
+  if (!n || !e) return notify('Fill all fields', 'error');
+  CU.name = n; CU.email = e; saveUser();
+  document.getElementById('sbName').textContent = n;
+  document.getElementById('sbAv').textContent = n[0].toUpperCase();
+  notify('Saved!', 'success');
+}
+
+async function changePw() {
+  const c = document.getElementById('setCurPw').value, n = document.getElementById('setNewPw').value, n2 = document.getElementById('setNewPw2').value;
+  if (!(await verifyPw(c, CU.password))) return notify('Wrong current password', 'error');
+  if (n.length < 8) return notify('Min 8 characters', 'error');
+  if (n !== n2) return notify('Passwords do not match', 'error');
+  CU.password = await hashPw(n); saveUser(); notify('Password updated!', 'success');
+  ['setCurPw','setNewPw','setNewPw2'].forEach(id => document.getElementById(id).value = '');
+}
+
+function exportChats() {
+  const d = {user:CU.username, exportDate:new Date().toISOString(), chats};
+  const b = new Blob([JSON.stringify(d,null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `kittydevs-${CU.username}.json`; a.click();
+  notify('Exported!', 'success');
+}
+
+function clearChats() {
+  if (!confirm('Delete all chats?')) return;
+  chats = {}; aChat = null; S.del('kd_chats_' + CU.username);
+  notify('Chats cleared', 'info'); renderChat();
+}
+
+function deleteAcct() {
+  if (!confirm('Delete account permanently?')) return;
+  const u = S.get('kd_users') || {}; delete u[CU.username]; S.set('kd_users', u);
+  S.del('kd_session'); S.del('kd_chats_' + CU.username); CU = null;
+  notify('Account deleted', 'info'); showPage('landing');
+}
+
+// ─── UI helpers ───────────────────────────────────────────────────────────────
+function toggleFaq(el) { const a = el.nextElementSibling, ch = el.querySelector('.faq-chev'); a.classList.toggle('open'); ch.classList.toggle('open'); }
+function togglePw(id) { const el = document.getElementById(id); el.type = el.type === 'password' ? 'text' : 'password'; }
+
+// ─── Markdown parser ──────────────────────────────────────────────────────────
+function parseMd(raw) {
+  if (!raw) return '';
+  let blocks = [], inlines = [];
+  let text = raw.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const i = blocks.length;
+    blocks.push(`<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>${esc(code.trim())}</code></pre>`);
+    return `\x00B${i}\x00`;
+  });
+  text = text.replace(/`([^\`\n]+)`/g, (_, c) => {
+    const i = inlines.length;
+    inlines.push(`<code>${esc(c)}</code>`);
+    return `\x00I${i}\x00`;
+  });
+  text = esc(text);
+  text = text.replace(/^### (.+)$/gm, '<h3 style="font-weight:700;margin:10px 0 5px;font-size:13px">$1</h3>');
+  text = text.replace(/^## (.+)$/gm, '<h2 style="font-weight:800;margin:12px 0 6px;font-size:14px">$1</h2>');
+  text = text.replace(/^# (.+)$/gm, '<h1 style="font-weight:900;margin:14px 0 7px;font-size:15px">$1</h1>');
+  text = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+  text = text.replace(/^[-*] (.+)$/gm, '<li style="margin-left:16px;margin-bottom:3px;list-style:disc">$1</li>');
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--accent);text-decoration:underline">$1</a>');
+  text = text.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+  text = '<p>' + text + '</p>';
+  inlines.forEach((h, i) => { text = text.replace(`\x00I${i}\x00`, h); });
+  blocks.forEach((h, i) => { text = text.replace(`\x00B${i}\x00`, h); });
+  return text;
+}
+
+function copyCode(btn) {
+  navigator.clipboard.writeText(btn.nextElementSibling.textContent).then(() => {
+    btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
 </script>
 </body>
 </html>

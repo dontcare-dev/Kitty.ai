@@ -774,85 +774,25 @@ async function sendMsg() {
 
     const systemPrompt = detailedMode ? SYSTEM_DETAILED : SYSTEM_QUICK;
 
-    // Try streaming first, fall back to non-streaming
+    // Simple non-streaming request — most reliable
     let responseText = '';
-    let didStream = false;
 
-    try {
-      const r = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model: MODEL_MAP[model] || 'llama-3.3-70b-versatile',
-          messages: hist,
-          system: systemPrompt,
-          stream: true
-        })
-      });
-
-      if (r.ok && r.headers.get('content-type')?.includes('text/event-stream')) {
-        // Streaming response
-        didStream = true;
-        tmp.remove();
-
-        // Create streaming bubble
-        const streamDiv = document.createElement('div');
-        streamDiv.className = 'msg ai';
-        streamDiv.innerHTML = `<div class="msg-av">🐱</div><div class="msg-body"><div class="msg-bubble" id="stream-bubble"><span class="stream-cursor"></span></div></div>`;
-        msgs.appendChild(streamDiv);
-
-        const bubble = document.getElementById('stream-bubble');
-        const reader = r.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        while (true) {
-          const {done, value} = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, {stream: true});
-          const lines = buffer.split('\n');
-          buffer = lines.pop();
-
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const data = line.slice(6).trim();
-            if (data === '[DONE]') break;
-            try {
-              const j = JSON.parse(data);
-              const delta = j.choices?.[0]?.delta?.content || '';
-              if (delta) {
-                responseText += delta;
-                bubble.innerHTML = parseMd(responseText) + '<span class="stream-cursor"></span>';
-                msgs.scrollTop = msgs.scrollHeight;
-              }
-            } catch {}
-          }
-        }
-
-        // Remove cursor
-        bubble.innerHTML = parseMd(responseText);
-        msgs.scrollTop = msgs.scrollHeight;
-      }
-    } catch (streamErr) {
-      // Streaming failed, will fall through to non-streaming
+    tmp.remove();
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: MODEL_MAP[model] || 'llama-3.3-70b-versatile',
+        messages: hist,
+        system: systemPrompt
+      })
+    });
+    if (!r.ok) {
+      const errData = await r.json().catch(() => ({}));
+      throw new Error(errData.error || `Server error (${r.status})`);
     }
-
-    if (!didStream) {
-      // Non-streaming fallback
-      tmp.remove();
-      const r = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model: MODEL_MAP[model] || 'llama-3.3-70b-versatile',
-          messages: hist,
-          system: systemPrompt
-        })
-      });
-      if (!r.ok) throw new Error(`Server error (${r.status})`);
-      const d = await r.json();
-      responseText = d?.choices?.[0]?.message?.content || 'No response received';
-    }
+    const d = await r.json();
+    responseText = d?.choices?.[0]?.message?.content || 'No response received';
 
     // Save AI message
     const am = {role:'ai', content:responseText, timestamp:new Date().toISOString(), model};

@@ -3,7 +3,6 @@ export const config = {
 };
 
 export default async function handler(req) {
-  // CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
@@ -34,35 +33,19 @@ export default async function handler(req) {
   // Build Groq messages array
   const groqMessages = [];
 
-  // Add system prompt if provided
   if (system && typeof system === 'string' && system.trim()) {
-    groqMessages.push({
-      role: 'system',
-      content: system.trim(),
-    });
+    groqMessages.push({ role: 'system', content: system.trim() });
   }
 
-  // Add conversation history
   if (Array.isArray(messages)) {
     for (const msg of messages) {
       if (!msg || typeof msg.content !== 'string' || !msg.content.trim()) continue;
-
-      let role = msg.role;
-
-      // Frontend uses 'ai', Groq requires 'assistant'
-      if (role === 'ai') role = 'assistant';
-
-      // Only valid roles
+      let role = msg.role === 'ai' ? 'assistant' : msg.role;
       if (!['user', 'assistant', 'system'].includes(role)) continue;
-
-      groqMessages.push({
-        role,
-        content: msg.content.trim(),
-      });
+      groqMessages.push({ role, content: msg.content.trim() });
     }
   }
 
-  // Must have at least one user message
   if (!groqMessages.some((m) => m.role === 'user')) {
     return new Response(JSON.stringify({ error: 'No user message provided' }), {
       status: 400,
@@ -70,38 +53,79 @@ export default async function handler(req) {
     });
   }
 
-  // Call Groq
-  let groqRes;
-  try {
-    groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: model || 'llama-3.3-70b-versatile',
-        messages: groqMessages,
-        temperature: 0.7,
-        max_tokens: 1024,
-      }),
-    });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: 'Failed to reach Groq', detail: err.message }), {
-      status: 502,
+  // API key rotation — tries each key until one works
+  const apiKeys = [
+    process.env.GROQ_API_KEY,
+    process.env.GROQ_API_KEY_2,
+    process.env.GROQ_API_KEY_3,
+  ].filter(Boolean); // removes undefined keys
+
+  if (apiKeys.length === 0) {
+    return new Response(JSON.stringify({ error: 'No API keys configured' }), {
+      status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
   }
 
-  // Read Groq response
-  const text = await groqRes.text();
+  let lastError = 'Unknown error';
+  let lastStatus = 500;
 
-  // Forward status + body back to client
-  return new Response(text, {
-    status: groqRes.status,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-    },
-  });
+  for (const apiKey of apiKeys) {
+    let groqRes;
+    try {
+      groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: model || 'llama-3.3-70b-versatile',
+          messages: groqMessages,
+          temperature: 0.7,
+          max_tokens: 1024,
+        }),
+      });
+    } catch (err) {
+      lastError = err.message;
+      continue; // try next key
+    }
+
+    const text = await groqRes.text();
+
+    // Rate limited or daily limit hit — try next key
+    if (groqRes.status === 429) {
+      lastStatus = 429;
+      try {
+        const j = JSON.parse(text);
+        lastError = j?.error?.message || 'Rate limit reached';
+      } catch {
+        lastError = 'Rate limit reached';
+      }
+      continue; // try next key
+    }
+
+    // Any other error — return immediately, no point trying other keys
+    if (!groqRes.ok) {
+      return new Response(text, {
+        status: groqRes.status,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    }
+
+    // Success
+    return new Response(text, {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
+  }
+
+  // All keys exhausted
+  return new Response(
+    JSON.stringify({ error: `All API keys rate limited. ${lastError}` }),
+    {
+      status: lastStatus,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    }
+  );
 }

@@ -791,10 +791,21 @@ async function sendMsg() {
       })
     });
     if (!r.ok) {
-      const errData = await r.json().catch(() => ({}));
-      throw new Error(errData.error || `Server error (${r.status})`);
+      let errMsg = `Server error (${r.status})`;
+      try {
+        const errData = await r.json();
+        if (typeof errData.error === 'string') errMsg = errData.error;
+        else if (errData.error?.message) errMsg = errData.error.message;
+        else if (errData.detail) errMsg = errData.detail;
+      } catch {}
+      throw new Error(errMsg);
     }
-    const d = await r.json();
+    let d;
+    try {
+      d = await r.json();
+    } catch {
+      throw new Error('Invalid response from server');
+    }
     responseText = d?.choices?.[0]?.message?.content || 'No response received';
 
     // Save AI message
@@ -807,7 +818,8 @@ async function sendMsg() {
   } catch (e) {
     const indicator = document.getElementById('typing-indicator');
     if (indicator) indicator.remove();
-    const em = {role:'ai', content:`Error: ${e.message}`, timestamp:new Date().toISOString()};
+    const errText = (e && e.message) ? e.message : (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+    const em = {role:'ai', content:`❌ ${errText}`, timestamp:new Date().toISOString()};
     ch.messages.push(em);
     saveChats(); renderMessages();
   }
